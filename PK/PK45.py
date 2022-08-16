@@ -1,9 +1,7 @@
-from poke_crypto import decrypt_array_45
-
 import sys
 sys.path.append('.')
 
-from Util import u16_from_le_bytes, u32_from_le_bytes
+from Util import decrypt_array_3, u16_from_le_bytes, u32_from_le_bytes, get_hp_type, get_hp_damage, get_ivs
 
 class PK4:
     def __init__(self, data, decrypted=False):
