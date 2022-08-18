@@ -1,3 +1,7 @@
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNGR
 from Util import ask_int, valid_year
 

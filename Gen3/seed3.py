@@ -1,5 +1,9 @@
 ### Script to recover 16bit initial seed from 32bit target seed ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from Util import ask_int, u32
 from RNG import LCRNGR
 

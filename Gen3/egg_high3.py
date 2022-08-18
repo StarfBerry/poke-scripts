@@ -4,6 +4,10 @@ Useful if you want a custom pid + specific ivs (to make hex speak pun or replica
 To make a custom pid, you have to setup the 16bit low beforehand (e.g. with egg_low_3.py).
 '''
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG, LCRNGR
 from Util import get_ivs, compare_ivs_egg, ask_int, u16
 from enum import Enum

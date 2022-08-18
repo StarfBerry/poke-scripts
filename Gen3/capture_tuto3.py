@@ -1,5 +1,9 @@
 ### Script to get shiny Wally's Ralts and the Old Man's Weedle. ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG
 from Util import ask_int
 

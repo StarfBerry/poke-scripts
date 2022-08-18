@@ -1,3 +1,7 @@
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import MT, RNGList
 
 def get_pokerus_slot_strain_5(rngList, party):

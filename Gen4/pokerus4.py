@@ -4,6 +4,10 @@ You have to hit the initial seed then use Sweet Scent on the indicated advances 
 Make sure you don't have eggs in your party.
 '''
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG, LCRNGR
 from datetime import datetime
 from Util import get_base_seed

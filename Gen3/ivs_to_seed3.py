@@ -1,5 +1,6 @@
 import sys
-sys.path.append('.')
+sys.path.append(".")
+sys.path.append("../")
 
 from RNG import LCRNG, LCRNGR, GCRNG, GCRNGR, lcrng_recover_lower_16bits_ivs, lcrng_recover_lower_16bits_ivs_2, gcrng_recover_lower_16bits_ivs
 from jirachi3 import JirachiChannel

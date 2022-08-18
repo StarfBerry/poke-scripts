@@ -1,5 +1,9 @@
 ### Script to search for rerolled Manaphy with specific ivs and nature ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import ARNG, LCRNGR, lcrng_recover_lower_16bits_ivs
 from Util import get_psv, get_nature, format_ivs
 

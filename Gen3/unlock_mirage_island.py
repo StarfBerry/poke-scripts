@@ -3,6 +3,10 @@ Script to find a static/wild Pokémon with a PID which matches your Mirage Islan
 To check your Mirage Island seed: https://projectpokemon.org/home/files/file/2888-pkhex-plugin-mirage-island-tool/
 '''
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG, LCRNGR
 from Util import u16, u32, ask_int, ask
 

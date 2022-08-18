@@ -3,6 +3,10 @@ Script to manipulate the lottery rng in RSE to get the Master Ball.
 The lottery ticket is generated when you press A to load your save file.
 '''
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG, MRNG
 from Util import ask_int, u32
 

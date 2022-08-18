@@ -4,15 +4,17 @@ sys.path.append('.')
 from Util import reverse_lshift_xor_mask, reverse_rshift_xor_mask
 
 class Xorshift:
+    MASK = 0xFFFFFFFF
+    
     def __init__(self, s0, s1, state=None):
         if state is not None:
             self.state = state
         else:
             self.state = [0] * 4
             self.state[0] = s0 >> 32
-            self.state[1] = s0 & 0xffffffff
+            self.state[1] = s0 & self.MASK
             self.state[2] = s1 >> 32
-            self.state[3] = s1 & 0xffffffff
+            self.state[3] = s1 & self.MASK
     
     def state(self):
         return (self.state[0] << 96) | (self.state[1] << 64) | (self.state[2] << 32) | self.state[3]
@@ -24,7 +26,7 @@ class Xorshift:
         
     def next(self):
         t = self.state[0]
-        t ^= (t << 11) & 0xffffffff
+        t ^= (t << 11) & self.MASK
         t ^= t >> 8
         t ^= self.state[3] ^ (self.state[3] >> 19)
 
@@ -33,7 +35,7 @@ class Xorshift:
         self.state[2] = self.state[3]
         self.state[3] = t
 
-        return ((t % 0xffffffff) + 0x80000000) & 0xffffffff
+        return ((t % self.MASK) + 0x80000000) & self.MASK
     
     def prev(self):
         t = self.state[3]
@@ -46,7 +48,7 @@ class Xorshift:
         self.state[1] = self.state[0]
         self.state[0] = t
 
-        return ((self.state[3] % 0xffffffff) + 0x80000000) & 0xffffffff
+        return ((self.state[3] % self.MASK) + 0x80000000) & self.MASK
     
     def advance(self, n=1):
         for _ in range(n):

@@ -1,5 +1,9 @@
 ### Script to search for tid (and tsv) with calibration from any date for Gen 6 games ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from datetime import datetime, timedelta
 from RNG import TinyMT
 

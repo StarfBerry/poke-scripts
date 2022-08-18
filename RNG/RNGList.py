@@ -1,5 +1,5 @@
 class RNGList:
-    def __init__(self, rng, size, rand=None):
+    def __init__(self, rng, size):
         self.rng = rng
         self.size = size
         self.index = 0

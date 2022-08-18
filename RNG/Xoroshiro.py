@@ -1,5 +1,5 @@
 class Xoroshiro:
-    mask = 0xFFFFFFFFFFFFFFFF
+    MASK = 0xFFFFFFFFFFFFFFFF
     
     def __init__(self, s0, s1=0x82A2B175229D6A5B):
        self.s0 = s0
@@ -13,24 +13,24 @@ class Xoroshiro:
     
     def next(self):
         s0, s1 = self.s0, self.s1
-        res = (s0 + s1) & self.mask
+        res = (s0 + s1) & self.MASK
         s1 ^= s0
         
-        self.s0 = Xoroshiro.rotl(s0, 24) ^ s1 ^ (s1 << 16) & self.mask
+        self.s0 = Xoroshiro.rotl(s0, 24) ^ s1 ^ (s1 << 16) & self.MASK
         self.s1 = Xoroshiro.rotl(s1, 37)
         
         return res
     
     def prev(self):
         s1 = Xoroshiro.rotl(self.s1, 27)
-        s0 = self.s0 ^ s1 ^ (s1 << 16) & self.mask
+        s0 = self.s0 ^ s1 ^ (s1 << 16) & self.MASK
         s0 = Xoroshiro.rotl(s0, 40)
         s1 ^= s0
         
         self.s0 = s0
         self.s1 = s1
         
-        return (s0 + s1) & self.mask
+        return (s0 + s1) & self.MASK
     
     def advance(self, n=1):
         for _ in range(n):
@@ -52,7 +52,7 @@ class Xoroshiro:
     
     @staticmethod
     def rotl(x, k):
-        return ((x << k) | (x >> (64 - k))) & Xoroshiro.mask
+        return ((x << k) | (x >> (64 - k))) & Xoroshiro.MASK
     
     @staticmethod
     def get_mask(x):

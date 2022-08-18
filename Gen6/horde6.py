@@ -1,6 +1,10 @@
 ### Prototype to check a seed for a full shiny horde in Gen 6 games with recursive approach ###
 
-from RNG import MT, RNGList
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
+from RNG import MT
 from Util import get_psv, Pokemon
 
 class Horde5:

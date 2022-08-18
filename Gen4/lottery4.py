@@ -1,5 +1,9 @@
 ### Script to mess with the Gen 4 lottery rng ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG, LCRNGR, MRNG, MRNGR, ARNG
 from datetime import date, timedelta
 

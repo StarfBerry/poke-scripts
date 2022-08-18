@@ -3,6 +3,10 @@ Script to get Pokérus at the end of battle in RSE.
 To find your delay on emu: https://github.com/DevonStudios/LuaScripts/blob/main/Gen%203/VBA/Side/RS_Pok%C3%A9rus_RNG.lua
 '''
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from Util import ask_int, ask, u32
 from RNG import LCRNG
 

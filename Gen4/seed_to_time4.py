@@ -1,3 +1,7 @@
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from Util import ask_int, valid_year, valid_month, valid_second, seed_to_time_4
 
 seed = ask_int("Seed: 0x", 16) & 0xffffffff

@@ -1,5 +1,9 @@
 ### Dolphin Seed To Time ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import GCRNG, GCRNGR, gcrng_recover_lower_16bits_pid, gcrng_recover_lower_16bits_ivs
 from datetime import datetime, timedelta
 

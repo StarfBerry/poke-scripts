@@ -1,5 +1,9 @@
 ### Script to hit a specific 16bit low for egg's pid in RS and FRLG games ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import LCRNG
 from Util import ask_int
 

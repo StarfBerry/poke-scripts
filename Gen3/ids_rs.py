@@ -1,5 +1,9 @@
 ### Script to get seeds for TID/SID in RS ###
 
+import sys
+sys.path.append(".")
+sys.path.append("../")
+
 from RNG import lcrng_recover_lower_16bits_pid, LCRNGR
 from Util import ask_int, u32
 import seed3
