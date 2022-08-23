@@ -13,24 +13,24 @@ class Xoroshiro:
     
     def next(self):
         s0, s1 = self.s0, self.s1
-        res = (s0 + s1) & self.MASK
+        res = (s0 + s1) & Xoroshiro.MASK
         s1 ^= s0
         
-        self.s0 = Xoroshiro.rotl(s0, 24) ^ s1 ^ (s1 << 16) & self.MASK
+        self.s0 = Xoroshiro.rotl(s0, 24) ^ s1 ^ (s1 << 16) & Xoroshiro.MASK
         self.s1 = Xoroshiro.rotl(s1, 37)
         
         return res
     
     def prev(self):
         s1 = Xoroshiro.rotl(self.s1, 27)
-        s0 = self.s0 ^ s1 ^ (s1 << 16) & self.MASK
+        s0 = self.s0 ^ s1 ^ (s1 << 16) & Xoroshiro.MASK
         s0 = Xoroshiro.rotl(s0, 40)
         s1 ^= s0
         
         self.s0 = s0
         self.s1 = s1
         
-        return (s0 + s1) & self.MASK
+        return (s0 + s1) & Xoroshiro.MASK
     
     def advance(self, n=1):
         for _ in range(n):

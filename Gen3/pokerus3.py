@@ -7,7 +7,6 @@ import sys
 sys.path.append(".")
 sys.path.append("../")
 
-from Util import ask_int, ask, u32
 from RNG import LCRNG
 
 def get_pokerus_slot_strain_3(seed, party, emerald=True):
@@ -31,6 +30,8 @@ def get_pokerus_slot_strain_3(seed, party, emerald=True):
     return (slot+1, strain)
 
 if __name__ == "__main__":
+    from Util import ask_int, ask, u32
+    
     game = ask("Emerald ? Y/N: ")
     seed = u32(ask_int("Initial Seed: 0x", 16))
     minAdvc = u32(ask_int("Min Advances: "))

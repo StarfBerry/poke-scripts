@@ -5,7 +5,6 @@ sys.path.append(".")
 sys.path.append("../")
 
 from RNG import LCRNG
-from Util import ask_int
 
 def generate_shiny_tuto(seed, minAdvc, maxAdvc):
     print("| {:^10} | {:^5} | {:^5} | {:^8} |".format("Advances", "TID", "SID", "PID"))
@@ -36,8 +35,10 @@ def generate_shiny_teachytv(seed, min_advc, max_advc):
     pass
 
 if __name__ == "__main__":
-    seed = ask_int("Initial Seed: 0x", 16)
-    minAdvc = ask_int("Min Advances: ")
-    maxAdvc = ask_int("Max Advances: ", condition=lambda val: val > minAdvc) + 1
+    from Util import ask_int, u16, u32
+    
+    seed = u16(ask_int("Initial Seed: 0x", 16))
+    minAdvc = u32(ask_int("Min Advances: "))
+    maxAdvc = u32(ask_int("Max Advances: ", condition=lambda val: u32(val+1) > minAdvc) + 1)
     print()
     generate_shiny_tuto(seed, minAdvc, maxAdvc)

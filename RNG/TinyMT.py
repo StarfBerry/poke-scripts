@@ -1,5 +1,6 @@
 import sys
-sys.path.append('.')
+sys.path.append(".")
+sys.path.append("../")
 
 from Util import reverse_lshift_xor_mask, reverse_rshift_xor_mask
 
@@ -16,9 +17,9 @@ class TinyMT:
             self._state = state
             self._period_certification()
         else:
-            self._state = [seed & self.MASK, TinyMT.A, TinyMT.B, TinyMT.C]
+            self._state = [seed & TinyMT.MASK, TinyMT.A, TinyMT.B, TinyMT.C]
             for i in range(1, 8):
-                self._state[i & 3] ^= (TinyMT.M * (self.state[(i - 1) & 3] ^ (self.state[(i - 1) & 3] >> 30)) + i) & self.MASK
+                self._state[i & 3] ^= (self.M * (self.state[(i - 1) & 3] ^ (self.state[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
             
             self._period_certification()
             self.advance(8)
@@ -53,21 +54,21 @@ class TinyMT:
         x = (self._state[0] & 0x7fffffff) ^ self._state[1] ^ self._state[2]
         y = self._state[3]
 
-        x ^= (x << 1) & self.MASK
+        x ^= (x << 1) & TinyMT.MASK
         y ^= (y >> 1) ^ x
 
         self._state[0] = self._state[1]
         self._state[1] = self._state[2]
-        self._state[2] = x ^ (y << 10) & self.MASK
+        self._state[2] = x ^ (y << 10) & TinyMT.MASK
         self._state[3] = y
 
         if y & 1:
-            self._state[1] ^= TinyMT.A
-            self._state[2] ^= TinyMT.B
+            self._state[1] ^= self.A
+            self._state[2] ^= self.B
             
     def _prev_state(self):
         y = self._state[3]
-        x = self._state[2] ^ (y << 10) & self.MASK
+        x = self._state[2] ^ (y << 10) & TinyMT.MASK
 
         self._state[2] = self._state[1]
         self._state[1] = self._state[0]
@@ -82,7 +83,7 @@ class TinyMT:
         self._state[3] = y
         self._state[0] = x ^ self._state[1] ^ self._state[2]
         
-        _x = (self._state[2] ^ (y << 10) ^ (y & 1) * TinyMT.B) & self.MASK
+        _x = (self._state[2] ^ (y << 10) ^ (y & 1) * TinyMT.B) & TinyMT.MASK
         xor = (self._state[1] >> 31) ^ (y >> 31) ^ (y & 1)
         xor ^= (reverse_rshift_xor_mask(y ^ _x) >> 31) ^ ((reverse_lshift_xor_mask(_x) >> 30) & 1)
 
@@ -90,7 +91,7 @@ class TinyMT:
             self._state[0] ^= 0x80000000
 
     def _temper(self):
-        t = (self._state[0] + (self._state[2] >> 8)) & self.MASK
+        t = (self._state[0] + (self._state[2] >> 8)) & TinyMT.MASK
         return self._state[3] ^ t ^ (t & 1) * TinyMT.C
     
     def _period_certification(self):
@@ -106,7 +107,7 @@ class TinyMT:
             s = rng.state
 
             for i in range(7, 0, -1):
-                s[i & 3] ^= (TinyMT.M * (s[(i - 1) & 3] ^ (s[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
+                s[i & 3] ^= (TinyMT.M * (s[(i- 1) & 3] ^ (s[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
             
             if s[3] == TinyMT.C:
                 if s[1] == TinyMT.A and s[2] == TinyMT.B:
@@ -154,4 +155,4 @@ if __name__ == "__main__":
     
     r = TinyMT.recover_seed_from_state(tinymt.state)
     
-    print(f"Recovered Seed: {r:08X} | Seed: {s:08X}")
+    print(f"Recovered Seed: {r:08X} | Expected Seed: {s:08X}")

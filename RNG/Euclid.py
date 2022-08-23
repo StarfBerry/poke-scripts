@@ -15,7 +15,7 @@ LCRNG_RMAX     = 0x250000
 LCRNG_SKIP1    = 0x73E2B0
 LCRNG_SKIP2    = 0x39F158 
 
-# LCRNGR give better skips than LCRNG for Method 2
+# LCRNGR gives better skips than LCRNG for Method 2
 LCRNGR_MUL_2   = 0xDC6C95D9        # 0xEEB9EB65^2 & 0xFFFFFFFF
 LCRNGR_SUB_2   = 0x4D3BB127        # (0xA3561A1^2 - 0xFFFF) & 0xFFFFFFFF
 LCRNGR_BASE_2  = 0xDC6BB96D6A26    # (LCRNGR_MUL_2 + 1) * 0xFFFF

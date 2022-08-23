@@ -4,7 +4,6 @@ import sys
 sys.path.append(".")
 sys.path.append("../")
 
-from Util import ask_int, u32
 from RNG import LCRNGR
 
 def get_init_seed(seed, min_advc, max_advc):
@@ -17,6 +16,8 @@ def get_init_seed(seed, min_advc, max_advc):
     return (None, -1)
 
 if __name__ == "__main__":
+    from Util import ask_int, u32
+    
     target_seed = u32(ask_int("Target Seed: 0x", 16))
     min_advc = u32(ask_int("Min Advances: "))
     max_advc = u32(ask_int("Max Advances: "))

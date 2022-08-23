@@ -69,16 +69,16 @@ class JirachiChannel:
         l = pid & 0xffff
         seeds = []
 
-        for seed in gcrng_recover_lower_16bits_pid(pid ^ 0x80000000):
-            sid = GCRNGR(seed).rand()
-            if JirachiChannel.tid ^ sid ^ h ^ (l < 8):
-                seeds.append(seed)
-        
         for seed in gcrng_recover_lower_16bits_pid(pid):
             sid = GCRNGR(seed).rand()
             if not (JirachiChannel.tid ^ sid ^ h ^ (l < 8)):
                 seeds.append(seed)
 
+        for seed in gcrng_recover_lower_16bits_pid(pid ^ 0x80000000):
+            sid = GCRNGR(seed).rand()
+            if JirachiChannel.tid ^ sid ^ h ^ (l < 8):
+                seeds.append(seed)
+        
         return [JirachiChannel(GCRNGR(seed).advance(2)) for seed in seeds]
 
     @staticmethod

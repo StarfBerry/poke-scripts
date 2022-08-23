@@ -9,7 +9,7 @@ sys.path.append(".")
 sys.path.append("../")
 
 from RNG import LCRNG, LCRNGR
-from Util import get_ivs, compare_ivs_egg, ask_int, u16
+from Util import get_ivs, compare_ivs_egg
 from enum import Enum
 
 class EggMethods(Enum):
@@ -42,7 +42,9 @@ def generate_egg_ivs(seed, method):
 def generate_all_methods(seed):
     return [generate_egg_ivs(seed, method.value) for method in EggMethods]
     
-if __name__ == "__main__":       
+if __name__ == "__main__":
+    from Util import ask_int, u16
+
     high = u16(ask_int("PID High: 0x", 16))
     target_ivs = []
     while len(target_ivs) != 6:

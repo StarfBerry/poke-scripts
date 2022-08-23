@@ -1,6 +1,6 @@
 from datetime import datetime
 
-daysMonths = (0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+DAYS_MONTHS = (0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     
 def valid_year(year):
     return 1999 < year < 2100
@@ -9,9 +9,11 @@ def valid_month(month):
     return 0 < month < 13
     
 def days_in_month(year, month):
+    if not valid_year(year):
+        raise ValueError("invalid year (2000 <= year <= 2099)")
     if not valid_month(month):
         raise ValueError("invalid month")
-    return 29 if (month == 2 and year % 4 == 0) else daysMonths[month]
+    return 29 if (month == 2 and year % 4 == 0) else DAYS_MONTHS[month]
 
 def valid_day(year, month, day):
     return 0 < day <= days_in_month(year, month)

@@ -35,11 +35,20 @@ def u64(x):
 def is_power2(x):
     return x & (x-1) == 0 and x
 
-def u64_from_le_bytes(data, start):
-    return int.from_bytes(data[start:start+8], byteorder="little") 
+def u16_from_le_bytes(data, start):
+    return int.from_bytes(data[start:start+2], byteorder="little")
 
 def u32_from_le_bytes(data, start):
     return int.from_bytes(data[start:start+4], byteorder="little") 
 
-def u16_from_le_bytes(data, start):
-    return int.from_bytes(data[start:start+2], byteorder="little")
+def u64_from_le_bytes(data, start):
+    return int.from_bytes(data[start:start+8], byteorder="little")
+
+def u16_from_be_bytes(data, start):
+    return int.from_bytes(data[start:start+2], byteorder="big")
+
+def u32_from_be_bytes(data, start):
+    return int.from_bytes(data[start:start+4], byteorder="big") 
+
+def u64_from_be_bytes(data, start):
+    return int.from_bytes(data[start:start+8], byteorder="big")

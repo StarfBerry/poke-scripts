@@ -1,7 +1,8 @@
 import sys
-sys.path.append('.')
+sys.path.append(".")
+sys.path.append("../")
 
-from Util import decrypt_array_3, u16_from_le_bytes, u32_from_le_bytes, get_hp_type, get_hp_damage, get_ivs
+from Util import decrypt_array_3, u16_from_le_bytes, u32_from_le_bytes, get_hp_type, get_hp_damage
 
 species_id_to_dex_number = [
     1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -86,11 +87,13 @@ class PK3:
             data = decrypt_array_3(data)
         
         self.data = data
+        
         self.pid = u32_from_le_bytes(self.data, 0x00)
         self.tid = u16_from_le_bytes(self.data, 0x04)
         self.sid = u16_from_le_bytes(self.data, 0x06)
         self.pkrs = self.data[0x44]
         self.iv32 = u32_from_le_bytes(self.data, 0x48)
+        
         self.ivs = self.all_ivs()
     
     def is_shiny(self):

@@ -5,13 +5,13 @@ sys.path.append(".")
 sys.path.append("../")
 
 from RNG import LCRNG
-from Util import ask_int
+from Util import ask_int, u8, u16, u32
 
-seed = ask_int("Initial Seed: 0x", 16)
+seed = u16(ask_int("Initial Seed: 0x", 16))
 target_low = ask_int("Target Low [0x1-0xfffe]: 0x", 16, lambda low: 0 < low < 0xffff)
-max_advc = ask_int("Max Advances: ") + 1
-compatibility = ask_int("Daycare Compatibility (20, 50 or 70) ? ", condition=lambda c: c in (20, 50, 70))
-delay = ask_int("Delay: ")
+max_advc = u32(ask_int("Max Advances: "))
+compatibility = ask_int("Parents Compatibility (20, 50 or 70) ? ", condition=lambda c: c in (20, 50, 70))
+delay = u8(ask_int("Delay: "))
 print()
 
 rng = LCRNG(seed)

@@ -1,7 +1,8 @@
 # Reference: https://github.com/kwsch/PKHeX/blob/master/PKHeX.Core/PKM/Util/PokeCrypto.cs
 
 import sys
-sys.path.append('.')
+sys.path.append(".")
+sys.path.append("../")
 
 from Util import u16_from_le_bytes, u32_from_le_bytes
 
@@ -43,17 +44,18 @@ SIZE_4BLOCK = 32
 SIZE_5PARTY = 220
 SIZE_5STORED = 136
 
-SIZE_6PARTY = 0x104
-SIZE_6STORED = 0xE8
+SIZE_6PARTY = 260
+SIZE_6STORED = 232
 SIZE_6BLOCK = 56
 
+SIZE_8PARTY = 344
+SIZE_8STORED = 328
 SIZE_8BLOCK = 80
-SIZE_8STORED = 8 + (4 * SIZE_8BLOCK)
-SIZE_8PARTY = SIZE_8STORED + 0x10
 
+SIZE_8APARTY = 376
+SIZE_8ASTORED = 360
 SIZE_8ABLOCK = 88
-SIZE_8ASTORED = 8 + (4 * SIZE_8ABLOCK)
-SIZE_8APARTY = SIZE_8ASTORED + 0x10
+
 
 def shuffle_array_3(data, sv):
     sdata = data.copy()
@@ -146,62 +148,62 @@ def encrypt_array_3(pk):
     return ekm
 
 def decrypt_array_45(ekm):
-    pv = u32_from_le_bytes(ekm, 0x0)
-    chk = u16_from_le_bytes(ekm, 0x6)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(ekm, 0)
+    chk = u16_from_le_bytes(ekm, 6)
+    sv = (pv >> 13) & 31
 
     crypt_pkm_45(ekm, pv, chk, SIZE_4BLOCK)
     return shuffle_array(ekm, sv, SIZE_4BLOCK)
 
 def encrypt_array_45(pk):
-    pv = u32_from_le_bytes(pk, 0x0)
-    chk = u16_from_le_bytes(pk, 0x6)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(pk, 0)
+    chk = u16_from_le_bytes(pk, 6)
+    sv = (pv >> 13) & 31
     
     ekm = shuffle_array(pk, BLOCK_POSITION_INVERT[sv], SIZE_4BLOCK)
     crypt_pkm_45(data, pv, chk, SIZE_4BLOCK)
     return ekm
 
 def decrypt_array_67(ekm):
-    pv = u32_from_le_bytes(ekm, 0x0)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(ekm, 0)
+    sv = (pv >> 13) & 31
 
     crypt_pkm(ekm, pv, SIZE_6BLOCK)
     return shuffle_array(ekm, sv, SIZE_6BLOCK)
 
 def encrypt_array_67(pk):
-    pv = u32_from_le_bytes(pk, 0x0)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(pk, 0)
+    sv = (pv >> 13) & 31
 
     ekm = shuffle_array(pk, BLOCK_POSITION_INVERT[sv], SIZE_6BLOCK)
     crypt_pkm(ekm, pv, SIZE_6BLOCK)
     return ekm
 
 def decrypt_array_8(ekm):
-    pv = u32_from_le_bytes(ekm, 0x0)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(ekm, 0)
+    sv = (pv >> 13) & 31
 
     crypt_pkm(ekm, pv, SIZE_8BLOCK)
     return shuffle_array(ekm, sv, SIZE_8BLOCK)
 
 def encrypt_array_8(pk):
-    pv = u32_from_le_bytes(pk, 0x0)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(pk, 0)
+    sv = (pv >> 13) & 31
 
     ekm = shuffle_array(pk, BLOCK_POSITION_INVERT[sv], SIZE_8BLOCK)
     crypt_pkm(ekm, pv, SIZE_8BLOCK)
     return ekm
 
 def decrypt_array_8_arceus(ekm):
-    pv = u32_from_le_bytes(ekm, 0x0)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(ekm, 0)
+    sv = (pv >> 13) & 31
 
     crypt_pkm(ekm, pv, SIZE_8ABLOCK)
     return shuffle_array(ekm, sv, SIZE_8ABLOCK)
 
 def encrypt_array_8_arceus(pk):
-    pv = u32_from_le_bytes(pk, 0x0)
-    sv = (pv >> 13) & 0x1F
+    pv = u32_from_le_bytes(pk, 0)
+    sv = (pv >> 13) & 31
 
     ekm = shuffle_array(pk, BLOCK_POSITION_INVERT[sv], SIZE_8ABLOCK)
     crypt_pkm(ekm, pv, SIZE_8ABLOCK)

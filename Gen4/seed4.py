@@ -3,19 +3,32 @@ sys.path.append(".")
 sys.path.append("../")
 
 from RNG import LCRNGR
-from Util import ask_int, valid_year
 
-seed = ask_int("Target Seed: 0x", 16) & 0xffffffff
-maxAdvc = ask_int("Max Advances: ") + 1
-maxDelay = ask_int("Max Delay [0-65536): ", condition=lambda val: 0 <= val < 65536)
-year = ask_int("Year [2000-2099]: ", condition=valid_year)
-y = year % 2000
-print()
+def get_seed_4(target_seed, max_advc, max_delay, year):
+    rng = LCRNGR(target_seed)
+    y = year % 2000
+    res = False
 
-rng = LCRNGR(seed)
-for advc in range(1, maxAdvc):
-    seed = rng.next()
-    hour = (seed >> 16) & 0xff
-    delay = ((seed & 0xffff) - y) & 0xffffffff
-    if hour < 24 and delay < maxDelay:
-        print(f"Initial Seed: {seed:08X} | Delay: {delay:{len(str(maxDelay))}d} | Advances: {advc}")
+    for advc in range(1, max_advc):
+        seed = rng.next()
+        hour = (seed >> 16) & 0xff
+        delay = ((seed & 0xffff) - y) & 0xffffffff
+
+        if hour < 24 and delay < max_delay:
+            print(f"Initial Seed: {seed:08X} | Delay: {delay:{len(str(max_delay))}d} | Advances: {advc}")
+            res = True
+    
+    if not res:
+        print("No results")
+
+if __name__ == "__main__":
+    from Util import u32, u16, ask_int, valid_year
+
+    target_seed = u32(ask_int("Target Seed: 0x", 16))
+    max_advc = u16(ask_int("Max Advances: "))
+    max_delay = ask_int("Max Delay [0-65536): ", condition=lambda val: 0 <= val < 65536)
+    year = ask_int("Year [2000-2099]: ", condition=valid_year)
+    print()
+
+    get_seed_4(target_seed, max_advc, max_delay, year)
+    

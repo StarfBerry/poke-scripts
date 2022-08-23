@@ -1,5 +1,6 @@
 import sys
-sys.path.append('.')
+sys.path.append(".")
+sys.path.append("../")
 
 import z3
 from Util import reverse_lshift_xor_mask, reverse_rshift_xor_mask
@@ -16,9 +17,9 @@ class MT:
     def __init__(self, seed=0):
         self._state = [0] * MT.N
 
-        self._state[0] = seed & self.MASK
+        self._state[0] = seed & MT.MASK
         for i in range(1, MT.N):
-            self._state[i] = (0x6C078965 * (self._state[i-1] ^ (self._state[i-1] >> 30)) + i) & self.MASK
+            self._state[i] = (0x6C078965 * (self._state[i-1] ^ (self._state[i-1] >> 30)) + i) & MT.MASK
 
         self._twist()
         self._index = 0
@@ -132,12 +133,6 @@ class MT:
     S[227] = S[(227 + 397) % 624] ^ (y >> 1) ^ (y & 1) * 0x9908B0DF
     S[227] = S[0] ^ (y >> 1) ^ (y & 1) * 0x9908B0DF
     x = S[227] ^ S[0] = (((s[227] & 0x80000000) | (s[228] & 0x7fffffff)) >> 1) ^ (s[228] & 1) * 0x9908B0DF
-
-    i = 623
-    x = S[623] ^ S[396] = (((s[623] & 0x80000000) | (seed & 0x7fffffff)) >> 1) ^ (seed & 1) * 0x9908B0DF
-
-    i = 1
-    x = S[1] ^ S[398] = (((s[1] & 0x80000000) | (s[2] & 0x7fffffff)) >> 1) ^ (s[2] & 1) * 0x9908B0DF
     '''
 
     # based on: https://www.ambionics.io/blog/php-mt-rand-prediction
@@ -149,7 +144,7 @@ class MT:
         x = u0 ^ u227
         
         s228_lsb = x >> 31
-        if s228_lsb: # without the xor, x is a 31 bit value
+        if s228_lsb: # without the xor, x is at most a 31 bit value
             x ^= MT.A
 
         s227_msb = (x >> 30) & 1 # bit(s[227], 31) == bit(x, 30)
@@ -171,7 +166,7 @@ class MT:
                 return seed
         
         return -1
-    
+
     @staticmethod
     def recover_seed_from_rands(r0, r227, offset=0):
         return MT.recover_seed_from_state_values(MT.untemper(r0), MT.untemper(r227), offset)
