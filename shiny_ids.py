@@ -1,7 +1,3 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
-
 from Util import ask_int, u32, u16
 
 pid = u32(ask_int("PID: 0x", 16))

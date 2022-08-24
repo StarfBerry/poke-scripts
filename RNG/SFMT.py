@@ -3,6 +3,7 @@ sys.path.append(".")
 sys.path.append("../")
 
 from Util import reverse_lshift_xor_mask
+from RNG import MT 
 
 class SFMT:
     A = 0
@@ -39,8 +40,8 @@ class SFMT:
     def advance(self, n=1):
         self._index += n
 
-        if self._index >= self.N:
-            q, self._index = divmod(self._index, 624)
+        if self._index >= SFMT.N:
+            q, self._index = divmod(self._index, SFMT.N)
             for _ in range(q): 
                 self._twist()
 
@@ -154,7 +155,20 @@ class SFMT:
             a, b, c, d = a-4, (b-4) % SFMT.N, (c-4) % SFMT.N, (d-4) % SFMT.N
     
         return state
-            
+    
+    @staticmethod
+    def recover_seed_from_state(state, min_advc=0, max_advc=10_000):
+        for _ in range(min_advc // SFMT.N):
+            state = SFMT.untwist(state)
+        for _ in range((max_advc // SFMT.N) + 1):
+            s4, s5 = state[4], state[5]
+            state = SFMT.untwist(state)
+            seed = MT.reverse_init_loop(state[4], 4)
+            test = SFMT(seed)
+            if test._state[4] == s4 and test._state[5] == s5:
+                return seed
+        return -1
+               
 if __name__ == "__main__":
     from random import randrange
 
@@ -164,7 +178,7 @@ if __name__ == "__main__":
     for _ in range(100):
         print(hex(test.next()))'''
 
-    for _ in range(1000):
+    '''for _ in range(1_000):
         seed = randrange(0, lim)
         rng = SFMT(seed)
         a = rng.state
@@ -174,4 +188,24 @@ if __name__ == "__main__":
         a_ = SFMT.untwist(b)
 
         if a != a_:
-            print(hex(seed))
+            print(hex(seed))'''
+    
+    '''for _ in range(1_000):
+        seed = randrange(0, lim)
+        advc = randrange(0, 10_000)
+        sfmt = SFMT(seed)
+        sfmt.advance(advc)
+        test = SFMT.recover_seed_from_state(sfmt.state)
+        
+        if test != seed:
+            print(hex(seed))'''
+    
+    seed = randrange(0, lim)
+    advc = randrange(0, 1_000_000)
+    
+    sfmt = SFMT(seed)
+    sfmt.advance(advc)
+    
+    test = SFMT.recover_seed_from_state(sfmt.state, max_advc=1_000_000)
+
+    print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {advc}")

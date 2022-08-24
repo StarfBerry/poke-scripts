@@ -19,7 +19,7 @@ class TinyMT:
         else:
             self._state = [seed & TinyMT.MASK, TinyMT.A, TinyMT.B, TinyMT.C]
             for i in range(1, 8):
-                self._state[i & 3] ^= (self.M * (self.state[(i - 1) & 3] ^ (self.state[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
+                self._state[i & 3] ^= (TinyMT.M * (self.state[(i - 1) & 3] ^ (self.state[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
             
             self._period_certification()
             self.advance(8)
