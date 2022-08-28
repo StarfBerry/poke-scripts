@@ -20,7 +20,7 @@ class SFMT:
     
     PARITY = [0x1, 0x0, 0x0, 0x13C9E684]
     
-    def __init__(self, seed, bits64=True):
+    def __init__(self, seed, b64=True):
         self._state = [0] * SFMT.N
 
         self._state[0] = seed
@@ -31,7 +31,7 @@ class SFMT:
         self._twist()
         self._index = 0
         
-        self.next = self._next64 if bits64 else self._next32
+        self.next = self._next64 if b64 else self._next32
     
     @property
     def state(self):
@@ -46,7 +46,7 @@ class SFMT:
                 self._twist()
 
     def _next32(self):
-        if self._index == self.N:
+        if self._index == SFMT.N:
             self._twist()
             self._index = 0
 
@@ -56,7 +56,7 @@ class SFMT:
         return n
     
     def _next64(self):
-        if self._index == self.N:
+        if self._index == SFMT.N:
             self._twist()
             self._index = 0
 
@@ -87,7 +87,6 @@ class SFMT:
                     self._state[i] ^= work
                     return
                 work <<= 1
-
     
     def _twist(self):
         a, b, c, d = SFMT.A, SFMT.B, SFMT.C, SFMT.D
@@ -154,15 +153,13 @@ class SFMT:
 
             a, b, c, d = a-4, (b-4) % SFMT.N, (c-4) % SFMT.N, (d-4) % SFMT.N
     
-        return state
-    
     @staticmethod
     def recover_seed_from_state(state, min_advc=0, max_advc=10_000):
         for _ in range(min_advc // SFMT.N):
-            state = SFMT.untwist(state)
+            SFMT.untwist(state)
         for _ in range((max_advc // SFMT.N) + 1):
             s4, s5 = state[4], state[5]
-            state = SFMT.untwist(state)
+            SFMT.untwist(state)
             seed = MT.reverse_init_loop(state[4], 4)
             test = SFMT(seed)
             if test._state[4] == s4 and test._state[5] == s5:

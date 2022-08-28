@@ -2,7 +2,7 @@ import sys
 sys.path.append(".")
 sys.path.append("../")
 
-from Util import decrypt_array_3, u16_from_le_bytes, u32_from_le_bytes, get_hp_type, get_hp_damage
+from Util import SIZE_3PARTY, get_checksum_3, decrypt_array_3, u16_from_le_bytes, u32_from_le_bytes, get_hp_type, get_hp_damage
 
 species_id_to_dex_number = [
     1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -83,10 +83,16 @@ species_to_gender_ratio = [
 
 class PK3:
     def __init__(self, data, decrypted=False):
+        if not isinstance(data, bytearray) or len(data) != SIZE_3PARTY:
+            raise TypeError("Unsupported file type/size.")
+        
         if not decrypted:
             data = decrypt_array_3(data)
         
         self.data = data
+
+        if self.checksum() != get_checksum_3(self.data):
+            raise ValueError("Invalid checksum.")
         
         self.pid = u32_from_le_bytes(self.data, 0x00)
         self.tid = u16_from_le_bytes(self.data, 0x04)
@@ -102,6 +108,15 @@ class PK3:
     def nature(self):
         return self.pid % 25
 
+    def checksum(self):
+        return u16_from_le_bytes(self.data, 0x1C)
+
+    def species_id(self):
+        return u16_from_le_bytes(self.data, 0x20)
+    
+    def species(self):
+        return species_id_to_dex_number[self.species_id()]
+
     def gender(self):
         gr = species_to_gender_ratio[self.species()]
         if gr == 255:
@@ -111,13 +126,7 @@ class PK3:
         elif gr == 0:
             return 0 # male only
         return 1 if (self.pid & 0xff) < gr else 0
-    
-    def species_id(self):
-        return u16_from_le_bytes(self.data, 0x20)
-    
-    def species(self):
-        return species_id_to_dex_number[self.species_id()]
-    
+
     def held_item(self):
         return u16_from_le_bytes(self.data, 0x22)
     
@@ -172,16 +181,6 @@ class PK3:
     def pkrs_strain(self):
         return self.pkrs >> 4
     
-    def all_ivs(self):
-        ivs = [0] * 6
-        ivs[0] = self.iv_hp()
-        ivs[1] = self.iv_atk()
-        ivs[2] = self.iv_def()
-        ivs[3] = self.iv_spa()
-        ivs[4] = self.iv_spd()
-        ivs[5] = self.iv_spe()        
-        return ivs
-
     def iv_hp(self):
         return self.iv32 & 0x1F
     
@@ -199,6 +198,16 @@ class PK3:
 
     def iv_spd(self):
         return (self.iv32 >> 25) & 0x1F
+    
+    def all_ivs(self):
+        ivs = [0] * 6
+        ivs[0] = self.iv_hp()
+        ivs[1] = self.iv_atk()
+        ivs[2] = self.iv_def()
+        ivs[3] = self.iv_spa()
+        ivs[4] = self.iv_spd()
+        ivs[5] = self.iv_spe()        
+        return ivs
     
     def hidden_power_type(self):
         return get_hp_type(self.ivs)

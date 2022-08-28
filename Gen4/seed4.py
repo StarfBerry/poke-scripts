@@ -31,4 +31,3 @@ if __name__ == "__main__":
     print()
 
     get_seed_4(target_seed, max_advc, max_delay, year)
-    

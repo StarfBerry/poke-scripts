@@ -38,7 +38,7 @@ def valid_date_time(year, month, day, hour, minute, second):
 
 def get_base_seed(dt):
     base = (dt.month * dt.day + dt.minute + dt.second) & 0xff
-    return ((base << 24) | (dt.hour << 16)) + (dt.year % 2000)
+    return (base << 24) | (dt.hour << 16) | (dt.year % 2000)
 
 def seed_to_time_3(seed, year=2000):
     pass

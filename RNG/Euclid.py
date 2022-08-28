@@ -188,11 +188,10 @@ def channel_recover_lower_27bits_ivs(hp, atk, dfs, spa, spd, spe):
     return res
 
 def channel_test(hp, atk, dfs, spa, spd, spe):
-    hp  <<= 11
-    atk <<= 11
+    rnd = (hp << 27) | (atk << 11)
     res = []
     for bits in range(1 << 22):
-        pid = ((hp | (bits >> 11)) << 16) | atk | (bits & 0x7ff)
+        pid = rnd | ((bits >> 11) << 16) | (bits & 0x7ff)
         for seed in gcrng_recover_lower_16bits_pid(pid):
             test = (seed * 0xA9FC6809 + 0x1E278E7A) & 0xffffffff # advance of 2 states to check def iv
             if (test >> 27) == dfs:

@@ -1,7 +1,7 @@
 ''' 
 Script to find initial seeds to get pokerus on low advances in Platinum and HGSS.
 You have to hit the initial seed then use Sweet Scent on the indicated advances and KO'd the mon you encounter during the first turn.
-Make sure you don't have eggs in your party.
+Make sure you don't have egg in your party at the indicated slot.
 '''
 
 import sys
@@ -12,9 +12,9 @@ from RNG import LCRNG, LCRNGR
 from datetime import datetime
 from Util import get_base_seed
 
-def get_occidentary(state: int, advc: int, hgss: bool=True) -> int:
+def get_occidentary(seed, advc, hgss=True):
     occ = advc
-    rng = LCRNG(state)
+    rng = LCRNG(seed)
     rnd = rng.rand()
     nat = rnd % 25 if hgss else rnd // 0xA3E
     while 1:
@@ -51,7 +51,7 @@ def occidentary_to_advances(state, occ, hgss=True):
     
     return advc
 
-def get_pokerus_slot_strain_4(seed: int, party: int):
+def get_pokerus_slot_strain_4(seed, party):
     rng = LCRNG(seed)
     slot = rng.rand() % party
     xy = 0

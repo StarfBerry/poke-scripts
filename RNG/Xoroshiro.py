@@ -61,6 +61,19 @@ class Xoroshiro:
             x |= x >> (1 << i)
         return x
 
+    @staticmethod
+    def recover_swsh_seed_from_state(state, max_advc=10_000):
+        rng = Xoroshiro(*state)
+        for _ in range(max_advc):
+            if rng.s1 == 0x82A2B175229D6A5B:
+                return rng.s0
+            rng.prev()
+        return -1
+    
+    @staticmethod
+    def calc_raid_seed_distance(s1, s2):
+        return (0xC855099EEB5DB5D3 * (s2 - s1)) & Xoroshiro.MASK
+
 if __name__ == "__main__":
     rng = Xoroshiro(0)
     it = 10_000

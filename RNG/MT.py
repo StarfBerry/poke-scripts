@@ -106,15 +106,13 @@ class MT:
             
             prev = (y << 1) & 0x80000000
 
-            _y = state[i-1] ^ state[(i + MT.M - 1) % 624]
-            if _y > 0x7fffffff:
-                _y ^= MT.A
+            y_ = state[i-1] ^ state[(i + MT.M - 1) % MT.N]
+            if y_ > 0x7fffffff:
+                y_ ^= MT.A
                 prev |= 1
             
-            prev |= (_y << 1) & 0x7FFFFFFE 
+            prev |= (y_ << 1) & 0x7FFFFFFE 
             state[i] = prev
-        
-        return state
        
     @staticmethod
     def reverse_init_linear(s, i):
@@ -174,12 +172,12 @@ class MT:
     @staticmethod
     def recover_seed_from_untempered_state(state, min_advc=0, max_advc=10_000):
         for _ in range(min_advc // MT.N):
-            state = MT.untwist(state)
+            MT.untwist(state)
         for _ in range((max_advc // MT.N) + 1):
             seed = MT.recover_seed_from_state_values(state[0], state[227])
             if seed != -1:
                 return seed
-            state = MT.untwist(state)
+            MT.untwist(state)
         return -1
     
     @staticmethod
@@ -237,12 +235,12 @@ if __name__ == "__main__":
         if test != seed:
             print(hex(seed))'''
 
-    '''for _ in range(10_000):
+    '''for _ in range(1_000):
         seed = randrange(0, lim)
         advc = randrange(1000, 10_000)
         mt = MT(seed)
         mt.advance(advc)
-        test = MT.recover_seed_from_untempered_state(mt.state, advc)
+        test = MT.recover_seed_from_untempered_state(mt.state)
         if test != seed:
             print(hex(seed))'''
     

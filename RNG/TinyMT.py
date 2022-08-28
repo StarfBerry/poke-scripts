@@ -63,8 +63,8 @@ class TinyMT:
         self._state[3] = y
 
         if y & 1:
-            self._state[1] ^= self.A
-            self._state[2] ^= self.B
+            self._state[1] ^= TinyMT.A
+            self._state[2] ^= TinyMT.B
             
     def _prev_state(self):
         y = self._state[3]
@@ -83,9 +83,8 @@ class TinyMT:
         self._state[3] = y
         self._state[0] = x ^ self._state[1] ^ self._state[2]
         
-        _x = (self._state[2] ^ (y << 10) ^ (y & 1) * TinyMT.B) & TinyMT.MASK
-        xor = (self._state[1] >> 31) ^ (y >> 31) ^ (y & 1)
-        xor ^= (reverse_rshift_xor_mask(y ^ _x) >> 31) ^ ((reverse_lshift_xor_mask(_x) >> 30) & 1)
+        x_ = (self._state[2] ^ (y << 10) ^ (y & 1) * TinyMT.B) & TinyMT.MASK
+        xor = (self._state[1] >> 31) ^ (y & 1) ^ (x_ >> 31) ^ (reverse_lshift_xor_mask(x_) >> 30) & 1
 
         if xor:
             self._state[0] ^= 0x80000000
@@ -97,7 +96,12 @@ class TinyMT:
     def _period_certification(self):
         if self._state[0] & 0x7fffffff == 0 and self._state[1] == 0 and self._state[2] == 0 and self._state[3] == 0:
             self._state = [ord('T'), ord('I'), ord('N'), ord('Y')]
-       
+    
+    @staticmethod
+    def reverse_init_loop(s):
+        for i in range(7, 0, -1):
+            s[i & 3] ^= (TinyMT.M * (s[(i- 1) & 3] ^ (s[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
+
     @staticmethod
     def recover_seed_from_state(state, min_advc=0, max_advc=10_000):
         rng = TinyMT(state=state)
@@ -105,9 +109,7 @@ class TinyMT:
         
         for _ in range(max_advc):
             s = rng.state
-
-            for i in range(7, 0, -1):
-                s[i & 3] ^= (TinyMT.M * (s[(i- 1) & 3] ^ (s[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
+            TinyMT.reverse_init_loop(s)
             
             if s[3] == TinyMT.C:
                 if s[1] == TinyMT.A and s[2] == TinyMT.B:
@@ -115,9 +117,7 @@ class TinyMT:
                 
                 c = rng.state
                 c[0] ^= 0x80000000
-                
-                for i in range(7, 0, -1):
-                    c[i & 3] ^= (TinyMT.M * (c[(i - 1) & 3] ^ (c[(i - 1) & 3] >> 30)) + i) & TinyMT.MASK
+                TinyMT.reverse_init_loop(c)
                 
                 if c[1] == TinyMT.A and c[2] == TinyMT.B:
                     return c[0]
@@ -155,4 +155,4 @@ if __name__ == "__main__":
     
     r = TinyMT.recover_seed_from_state(tinymt.state)
     
-    print(f"Recovered Seed: {r:08X} | Expected Seed: {s:08X}")
+    print(f"Recovered Seed: {r:08X} | Expected Seed: {s:08X} | Advances: {a}")
