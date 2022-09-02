@@ -2,7 +2,7 @@ import sys
 sys.path.append(".")
 sys.path.append("../")
 
-from Util import SIZE_3PARTY, get_checksum_3, decrypt_array_3, u16_from_le_bytes, u32_from_le_bytes, get_hp_type, get_hp_damage
+from Util import ByteStruct, SIZE_3PARTY, get_checksum_3, decrypt_array_3, get_ivs, get_hp_type, get_hp_damage
 
 species_id_to_dex_number = [
     1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
@@ -81,44 +81,60 @@ species_to_gender_ratio = [
     255, 255, 254, 0, 255, 255, 255, 255, 255
 ]
 
-class PK3:
-    def __init__(self, data, decrypted=False):
+class PK3(ByteStruct):
+    def __init__(self, data):
         if not isinstance(data, bytearray) or len(data) != SIZE_3PARTY:
-            raise TypeError("Unsupported file type/size.")
-        
-        if not decrypted:
-            data = decrypt_array_3(data)
+            raise TypeError("Unsupported type/size.")
         
         self.data = data
 
-        if self.checksum() != get_checksum_3(self.data):
-            raise ValueError("Invalid checksum.")
-        
-        self.pid = u32_from_le_bytes(self.data, 0x00)
-        self.tid = u16_from_le_bytes(self.data, 0x04)
-        self.sid = u16_from_le_bytes(self.data, 0x06)
-        self.pkrs = self.data[0x44]
-        self.iv32 = u32_from_le_bytes(self.data, 0x48)
-        
-        self.ivs = self.all_ivs()
+        if not self.is_valid:
+            self.data = decrypt_array_3(self.data)
     
+    @property
+    def is_valid(self):
+        return self.checksum == get_checksum_3(self.data)
+
+    @property
+    def pid(self):
+        return self.u32_from_le_bytes(0x00)
+    
+    @property
+    def tid(self):
+        return self.u16_from_be_bytes(0x04)
+    
+    @property
+    def sid(self):
+        return self.u16_from_be_bytes(0x06)
+    
+    @property
+    def shiny_xor(self):
+        pid = self.pid
+        return (pid >> 16) ^ (pid & 0xffff) ^ self.tid ^ self.sid
+
+    @property
     def is_shiny(self):
-        return ((self.pid >> 16) ^ (self.pid & 0xffff) ^ self.tid ^ self.sid) < 8
+        return self.shiny_xor < 8
     
+    @property
     def nature(self):
         return self.pid % 25
 
+    @property
     def checksum(self):
-        return u16_from_le_bytes(self.data, 0x1C)
+        return self.u16_from_le_bytes(0x1C)
 
+    @property
     def species_id(self):
-        return u16_from_le_bytes(self.data, 0x20)
+        return self.u16_from_le_bytes(0x20)
     
+    @property
     def species(self):
-        return species_id_to_dex_number[self.species_id()]
+        return species_id_to_dex_number[self.species_id]
 
+    @property
     def gender(self):
-        gr = species_to_gender_ratio[self.species()]
+        gr = species_to_gender_ratio[self.species]
         if gr == 255:
             return 2 # genderless
         elif gr == 254:
@@ -127,123 +143,74 @@ class PK3:
             return 0 # male only
         return 1 if (self.pid & 0xff) < gr else 0
 
+    @property
     def held_item(self):
-        return u16_from_le_bytes(self.data, 0x22)
+        return self.u16_from_le_bytes(0x22)
     
+    @property
     def ot_friendship(self):
         return self.data[0x29]
     
-    def move1(self):
-        return u16_from_le_bytes(self.data, 0x2C)
-    
-    def move2(self):
-        return u16_from_le_bytes(self.data, 0x2E)
-    
-    def move3(self):
-        return u16_from_le_bytes(self.data, 0x30)
-    
-    def move4(self):
-        return u16_from_le_bytes(self.data, 0x32)
+    @property
+    def moves(self):
+        return [self.u16_from_le_bytes(0x2C + 2*i) for i in range(4)]
 
-    def move1_pp(self):
-        return self.data[0x34]
+    @property
+    def pps(self):
+        return [self.data[0x34 + i] for i in range(4)]
     
-    def move2_pp(self):
-        return self.data[0x35]
+    @property
+    def evs(self):
+        hp, atk, dfs, spe, spa, spd = (self.data[0x38 + i] for i in range(6))  
+        return [hp, atk, dfs, spa, spd, spe]   
     
-    def move3_pp(self):
-        return self.data[0x36]
-    
-    def move4_pp(self):
-        return self.data[0x37]
-    
-    def ev_hp(self):
-        return self.data[0x38]
-    
-    def ev_atk(self):
-        return self.data[0x39]
-    
-    def ev_def(self): 
-        return self.data[0x3A]
-    
-    def ev_spa(self):
-        return self.data[0x3B]
-    
-    def ev_spe(self):
-        return self.data[0x3C]
-    
-    def ev_spd(self):
-        return self.data[0x3D]
-    
+    @property
+    def pkrs(self):
+        return self.data[0x44]
+
+    @property
     def pkrs_days(self):
         return self.pkrs & 0xF
     
+    @property
     def pkrs_strain(self):
         return self.pkrs >> 4
     
-    def iv_hp(self):
-        return self.iv32 & 0x1F
+    @property
+    def iv32(self):
+        return self.u32_from_le_bytes(0x48)
     
-    def iv_atk(self):
-        return (self.iv32 >> 5) & 0x1F
+    @property
+    def ivs(self):
+        iv32 = self.iv32
+        hp, atk, dfs, spe, spa, spd = ((iv32 >> (5*i)) & 31 for i in range(6))  
+        return [hp, atk, dfs, spa, spd, spe]
     
-    def iv_def(self):
-        return (self.iv32 >> 10) & 0x1F
-    
-    def iv_spe(self):
-        return (self.iv32 >> 15) & 0x1F
-
-    def iv_spa(self):
-        return (self.iv32 >> 20) & 0x1F
-
-    def iv_spd(self):
-        return (self.iv32 >> 25) & 0x1F
-    
-    def all_ivs(self):
-        ivs = [0] * 6
-        ivs[0] = self.iv_hp()
-        ivs[1] = self.iv_atk()
-        ivs[2] = self.iv_def()
-        ivs[3] = self.iv_spa()
-        ivs[4] = self.iv_spd()
-        ivs[5] = self.iv_spe()        
-        return ivs
-    
+    @property
     def hidden_power_type(self):
         return get_hp_type(self.ivs)
     
+    @property
     def hidden_power_dmge(self):
         return get_hp_damage(self.ivs)
 
+    @property
     def is_egg(self):
         return ((self.iv32 >> 30) & 1) == 1
 
+    @property
     def ability_bit(self):
         return self.iv32 >> 31
     
+    @property
     def ability(self):
-        return species_to_abilities[self.species()][self.ability_bit()]
+        return species_to_abilities[self.species][self.ability_bit]
     
+    @property
     def level(self):
         return self.data[0x54]
     
-    def stat_current_hp(self):
-        return u16_from_le_bytes(self.data, 0x56)
-    
-    def stat_max_hp(self):
-        return u16_from_le_bytes(self.data, 0x58)
-    
-    def stat_atk(self):
-        return u16_from_le_bytes(self.data, 0x5A)
-    
-    def stat_def(self):
-        return u16_from_le_bytes(self.data, 0x5C)
-    
-    def stat_spe(self):
-        return u16_from_le_bytes(self.data, 0x5E)
-    
-    def stat_spa(self):
-        return u16_from_le_bytes(self.data, 0x60)
-    
-    def stat_spd(self):
-        return u16_from_le_bytes(self.data, 0x62)
+    @property
+    def stats(self):
+        curr_hp, max_hp, atk, dfs, spe, spa, spd = (self.u16_from_le_bytes(0x56 + 2*i) for i in range(7))
+        return [curr_hp, max_hp, atk, dfs, spa, spd, spe]

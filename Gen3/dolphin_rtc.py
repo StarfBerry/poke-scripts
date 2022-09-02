@@ -1,4 +1,4 @@
-### Dolphin Seed To Time ###
+### Dolphin Seed to Time ###
 
 import sys
 sys.path.append(".")

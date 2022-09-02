@@ -91,7 +91,7 @@ class SFMT:
     def _twist(self):
         a, b, c, d = SFMT.A, SFMT.B, SFMT.C, SFMT.D
 
-        while a < 624:
+        while a < SFMT.N:
             self._state[a+3] ^= (self._state[a+3] << 8) & SFMT.MASK
             self._state[a+3] ^= self._state[a+2] >> 24
             self._state[a+3] ^= self._state[c+3] >> 8

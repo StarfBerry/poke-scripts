@@ -9,7 +9,7 @@ sys.path.append("../")
 
 from RNG import LCRNG, LCRNGR
 
-def search_wild_16bit_low_pid(seed, delay):
+def search_wild_16bit_low_pid(seed, mirage, delay):
     rng = LCRNG(seed)
     rng.advance(delay)
     res = False
@@ -39,7 +39,7 @@ def search_wild_16bit_low_pid(seed, delay):
         print("No results.")
 
 
-def search_static_16bit_low_pid(seed, delay):
+def search_static_16bit_low_pid(seed, mirage, delay):
     rng = LCRNG(seed)
     rng.advance(delay)
     res = False
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     from Util import u16, u32, ask_int, ask
 
     seed = u16(ask_int("Initial Seed: 0x", 16))
-    mirage = u16(ask_int("Mirage Island Seed: 0x", 16))
+    mirage = u16(ask_int("Mirage Island Value: 0x", 16))
     max_advc = u32(ask_int("Max Advances: "))
     wild = ask("Wild encounter ? Y/N: ")
     delay = u16(ask_int("Delay: "))
@@ -67,6 +67,6 @@ if __name__ == "__main__":
     print()
 
     if wild:
-        search_wild_16bit_low_pid(seed, delay)
+        search_wild_16bit_low_pid(seed, mirage, delay)
     else:
-        search_static_16bit_low_pid(seed, delay)
+        search_static_16bit_low_pid(seed, mirage, delay)

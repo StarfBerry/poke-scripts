@@ -45,11 +45,13 @@ class EeveeXD:
     @staticmethod
     def tidsid_to_eevee(tid, sid):
         tidsid = (tid << 16) | sid
-        return [EeveeXD(GCRNGR(seed).next()) for seed in gcrng_recover_lower_16bits_pid(tidsid)]
+        seeds = gcrng_recover_lower_16bits_pid(tidsid)
+        return [EeveeXD(GCRNGR(seed).next()) for seed in seeds]
 
     @staticmethod
     def pid_to_eevee(pid):
-        return [EeveeXD(GCRNGR(seed).advance(8)) for seed in gcrng_recover_lower_16bits_pid(pid)]
+        seeds = gcrng_recover_lower_16bits_pid(pid)
+        return [EeveeXD(GCRNGR(seed).advance(8)) for seed in seeds]
 
 if __name__ == "__main__":
     tid = 5

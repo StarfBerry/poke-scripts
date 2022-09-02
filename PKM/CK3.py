@@ -2,36 +2,27 @@ import sys
 sys.path.append(".")
 sys.path.append("../")
 
-from Util import SIZE_3CSTORED, u16_from_be_bytes, u32_from_be_bytes, i32_from_be_bytes, i8_from_bytes, get_hp_type, get_hp_damage
+from Util import ByteStruct, SIZE_3CSTORED, get_hp_type, get_hp_damage
 from PKM import species_id_to_dex_number, species_to_gender_ratio, species_to_abilities
 
-class CK3:
+class CK3(ByteStruct):
     def __init__(self, data):
         if not isinstance(data, bytearray) or len(data) != SIZE_3CSTORED:
-            raise TypeError("Unsupported file type/size.")
+            raise TypeError("Unsupported type/size.")
         
         self.data = data
 
-        self.pid = u32_from_be_bytes(self.data, 0x04)
-        self.sid = u16_from_be_bytes(self.data, 0x14)
-        self.tid = u16_from_be_bytes(self.data, 0x16)
-
-        self.ivs = self.all_ivs()
-
-    def is_shiny(self):
-        return ((self.pid >> 16) ^ (self.pid & 0xffff) ^ self.tid ^ self.sid) < 8
-    
-    def nature(self):
-        return self.pid % 25
-
+    @property
     def species_id(self):
-        return u16_from_be_bytes(self.data, 0x00)
+        return self.u16_from_be_bytes(0x00)
     
+    @property
     def species(self):
-        return species_id_to_dex_number[self.species_id()]
+        return species_id_to_dex_number[self.species_id]
     
+    @property
     def gender(self):
-        gr = species_to_gender_ratio[self.species()]
+        gr = species_to_gender_ratio[self.species]
         if gr == 255:
             return 2 # genderless
         elif gr == 254:
@@ -40,133 +31,103 @@ class CK3:
             return 0 # male only
         return 1 if (self.pid & 0xff) < gr else 0
 
+    @property
+    def pid(self):
+        return self.u32_from_be_bytes(0x04)
+    
+    @property
+    def nature(self):
+        return self.pid % 25
+
+    @property
+    def sid(self):
+        return self.u16_from_be_bytes(0x14)
+    
+    @property
+    def tid(self):
+        return self.u16_from_be_bytes(0x16)
+
+    @property
+    def shiny_xor(self):
+        pid = self.pid
+        return (pid >> 16) ^ (pid & 0xffff) ^ self.tid ^ self.sid
+
+    @property
+    def is_shiny(self):
+        return self.shiny_xor < 8
+    
+    @property
     def level(self):
         return self.data[0x60]
     
-    def move1(self):
-        return u16_from_be_bytes(self.data, 0x78)
-    
-    def move1_pp(self):
-        return self.data[0x7A]
-    
-    def move2(self):
-        return u16_from_be_bytes(self.data, 0x7C)
-    
-    def move2_pp(self):
-        return self.data[0x7E]
+    @property
+    def moves(self):
+        return [self.u16_from_be_bytes(0x78 + 4*i) for i in range(4)]
 
-    def move3(self):
-        return u16_from_be_bytes(self.data, 0x80)
+    @property
+    def pps(self):
+        return [self.data[0x7A + 4*i] for i in range(4)]
     
-    def move3_pp(self):
-        return self.data[0x82]
-    
-    def move4(self):
-        return u16_from_be_bytes(self.data, 0x84)
-    
-    def move4_pp(self):
-        return self.data[0x86]
-    
+    @property
     def held_item(self):
-        return u16_from_be_bytes(self.data, 0x88)
+        return self.u16_from_be_bytes(0x88)
     
-    def stat_current_hp(self):
-        return u16_from_be_bytes(self.data, 0x8A)
+    @property
+    def stats(self):
+        return [self.u16_from_be_bytes(0x8A + 2*i) for i in range(7)]
+
+    @property
+    def evs(self):
+        return [min(255, self.u16_from_be_bytes(0x98 + 2*i)) for i in range(6)]
     
-    def stat_max_hp(self):
-        return u16_from_be_bytes(self.data, 0x8C)
-    
-    def stat_atk(self):
-        return u16_from_be_bytes(self.data, 0x8E)
-    
-    def stat_def(self):
-        return u16_from_be_bytes(self.data, 0x90)
-    
-    def stat_spa(self):
-        return u16_from_be_bytes(self.data, 0x92)
-    
-    def stat_spd(self):
-        return u16_from_be_bytes(self.data, 0x94)
-    
-    def stat_spe(self):
-        return u16_from_be_bytes(self.data, 0x96)
-    
-    def ev_hp(self):
-        return min(255, u16_from_be_bytes(self.data, 0x98))
-    
-    def ev_atk(self):
-        return min(255, u16_from_be_bytes(self.data, 0x9A))
-    
-    def ev_def(self):
-        return min(255, u16_from_be_bytes(self.data, 0x9C))
-    
-    def ev_spa(self):
-        return min(255, u16_from_be_bytes(self.data, 0x9E))
-    
-    def ev_spd(self):
-        return min(255, u16_from_be_bytes(self.data, 0xA0))
-    
-    def ev_spe(self):
-        return min(255, u16_from_be_bytes(self.data, 0xA2))
-    
-    def iv_hp(self):
-        return min(31, u16_from_be_bytes(self.data, 0xA4))
-    
-    def iv_atk(self):
-        return min(31, u16_from_be_bytes(self.data, 0xA6))
-    
-    def iv_def(self):
-        return min(31, u16_from_be_bytes(self.data, 0xA8))
-    
-    def iv_spa(self):
-        return min(31, u16_from_be_bytes(self.data, 0xAA))
-    
-    def iv_spd(self):
-        return min(31, u16_from_be_bytes(self.data, 0xAC))
-    
-    def iv_spe(self):
-        return min(31, u16_from_be_bytes(self.data, 0xAE))
-    
-    def all_ivs(self):
-        ivs = [0] * 6
-        ivs[0] = self.iv_hp()
-        ivs[1] = self.iv_atk()
-        ivs[2] = self.iv_def()
-        ivs[3] = self.iv_spa()
-        ivs[4] = self.iv_spd()
-        ivs[5] = self.iv_spe()        
-        return ivs
-    
+    @property
+    def ivs(self):
+        return [min(31, self.u16_from_be_bytes(0xA4 + 2*i)) for i in range(6)]
+
+    @property  
     def hidden_power_type(self):
         return get_hp_type(self.ivs)
     
+    @property
     def hidden_power_dmge(self):
         return get_hp_damage(self.ivs)
     
+    @property
     def ot_friendship(self):
-        return min(255, u16_from_be_bytes(self.data, 0xB0))
+        return min(255, self.u16_from_be_bytes(0xB0))
     
+    @property
     def pkrs_strain(self):
         return self.data[0xCA] & 0xF
     
+    @property
     def is_egg(self):
         return self.data[0xCB] == 1
     
+    @property
     def ability_bit(self):
         return self.data[0xCC] == 1
     
+    @property
     def ability(self):
-        return species_to_abilities[self.species()][self.ability_bit()]
+        return species_to_abilities[self.species][self.ability_bit]
     
+    @property
+    def is_valid(self):
+        return self.data[0xCD] == 0
+
+    @property
     def pkrs_days(self):
-        d = i8_from_bytes(self.data, 0xD0)
-        return max(d, 0)
+        return max(self.i8_from_bytes(0xD0), 0)
     
+    @property
     def shadow_id(self):
-        return u16_from_be_bytes(self.data, 0xD8)
+        return self.u16_from_be_bytes(0xD8)
     
+    @property
     def purification(self):
-        return i32_from_be_bytes(self.data, 0xDC)
+        return self.i32_from_be_bytes(0xDC)
     
+    @property
     def is_shadow(self):
-        return self.shadow_id() != 0 and self.purification() != -100
+        return self.shadow_id != 0 and self.purification != -100
