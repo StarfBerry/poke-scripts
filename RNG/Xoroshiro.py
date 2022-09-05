@@ -5,11 +5,13 @@ class Xoroshiro:
        self.s0 = s0
        self.s1 = s1
     
+    @property
     def state(self):
         return (self.s0 << 64) | self.s1
 
+    @property
     def states(self):
-        return self.s0, self.s1
+        return (self.s0, self.s1)
     
     def next(self):
         s0, s1 = self.s0, self.s1

@@ -16,13 +16,15 @@ class Xorshift:
             self.state[2] = s1 >> 32
             self.state[3] = s1 & 0xffffffff
     
+    @property
     def state(self):
         return (self.state[0] << 96) | (self.state[1] << 64) | (self.state[2] << 32) | self.state[3]
     
+    @property
     def states(self):
         s0 = (self.state[0] << 32) | self.state[1]
         s1 = (self.state[2] << 32) | self.state[3]
-        return s0, s1
+        return (s0, s1)
         
     def next(self):
         t = self.state[0]
