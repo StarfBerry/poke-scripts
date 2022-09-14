@@ -1,6 +1,5 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from Util import ask_int, valid_year, valid_month, valid_second, seed_to_time_4
 

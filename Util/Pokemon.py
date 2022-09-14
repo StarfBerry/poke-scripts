@@ -22,13 +22,13 @@ def get_hp_damage(ivs):
 
 def get_ivs(iv1, iv2):
     ivs = (iv2 << 15) | (iv1 & 0x7fff)
-    return [(ivs >> (order[i] * 5)) & 0x1f for i in order]
-
-def get_gender(rnd, female_ratio=2):
-    return "Female" if rnd < (256 // female_ratio) else "Male"
+    return [(ivs >> (order[i] * 5)) & 31 for i in order]
 
 def get_nature(rnd):
     return natures[rnd % 25]
+
+def get_gender(rnd, female_ratio=2):
+    return "Female" if rnd < (256 // female_ratio) else "Male"
 
 def get_psv(pid, rshift=3):
     return ((pid >> 16) ^ (pid & 0xffff)) >> rshift

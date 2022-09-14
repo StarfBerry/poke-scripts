@@ -1,6 +1,5 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from Util import ByteStruct, SIZE_3PARTY, get_checksum_3, decrypt_array_3, get_ivs, get_hp_type, get_hp_damage
 
@@ -100,6 +99,10 @@ class PK3(ByteStruct):
         return self.u32_from_le_bytes(0x00)
     
     @property
+    def nature(self):
+        return self.pid % 25
+
+    @property
     def tid(self):
         return self.u16_from_be_bytes(0x04)
     
@@ -109,21 +112,20 @@ class PK3(ByteStruct):
     
     @property
     def shiny_xor(self):
-        pid = self.pid
-        return (pid >> 16) ^ (pid & 0xffff) ^ self.tid ^ self.sid
+        return (self.pid >> 16) ^ (self.pid & 0xffff) ^ self.tid ^ self.sid
 
     @property
     def is_shiny(self):
         return self.shiny_xor < 8
-    
+
     @property
-    def nature(self):
-        return self.pid % 25
+    def language(self):
+        return self.data[0x12]
 
     @property
     def checksum(self):
         return self.u16_from_le_bytes(0x1C)
-
+    
     @property
     def species_id(self):
         return self.u16_from_le_bytes(0x20)
@@ -146,7 +148,11 @@ class PK3(ByteStruct):
     @property
     def held_item(self):
         return self.u16_from_le_bytes(0x22)
-    
+       
+    @property
+    def pp_ups(self):
+        return [(self.data[0x28] >> (2*i)) & 3 for i in range(4)]
+
     @property
     def ot_friendship(self):
         return self.data[0x29]
@@ -175,6 +181,10 @@ class PK3(ByteStruct):
     @property
     def pkrs_strain(self):
         return self.pkrs >> 4
+       
+    @property
+    def ball(self):
+        return (self.u16_from_le_bytes(0x46) >> 11) & 0xf
     
     @property
     def iv32(self):
@@ -182,8 +192,7 @@ class PK3(ByteStruct):
     
     @property
     def ivs(self):
-        iv32 = self.iv32
-        hp, atk, dfs, spe, spa, spd = ((iv32 >> (5*i)) & 31 for i in range(6))  
+        hp, atk, dfs, spe, spa, spd = ((self.iv32 >> (5*i)) & 31 for i in range(6))  
         return [hp, atk, dfs, spa, spd, spe]
     
     @property
@@ -206,6 +215,14 @@ class PK3(ByteStruct):
     def ability(self):
         return species_to_abilities[self.species][self.ability_bit]
     
+    @property
+    def fateful_encounter(self):
+        return (self.u32_from_le_bytes(0x4C) >> 31) == 1
+
+    @property
+    def status_condition(self):
+        return self.u32_from_le_bytes(0x50)
+
     @property
     def level(self):
         return self.data[0x54]

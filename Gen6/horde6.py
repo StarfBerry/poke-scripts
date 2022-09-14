@@ -1,8 +1,7 @@
 ### Prototype to check a seed for a full shiny horde in Gen 6 games with recursive approach ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import MT
 from Util import get_psv, Pokemon

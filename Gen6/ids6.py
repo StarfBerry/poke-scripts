@@ -1,8 +1,7 @@
 ### Script to search for tid (and tsv) with calibration from any date for Gen 6 games using Citra ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from datetime import datetime, timedelta
 from RNG import TinyMT
@@ -63,7 +62,7 @@ for second in range(seconds):
             sid = rnd >> 16
             tsv_ = (tid_ ^ sid) >> 4
             dt = dt_start + timedelta(seconds=second)
-            s = TinyMT.backward(rng.state, advc+1) # TinyMT state we should obtain on the language selection screen 
+            s = TinyMT.backward_state(rng.state, advc+1) # TinyMT state we should obtain on the language selection screen 
             print(fmt.format(dt, advc, tid_, sid, tsv_, *s))
     
     seed += 1000

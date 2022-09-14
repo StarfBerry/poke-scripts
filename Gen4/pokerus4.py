@@ -4,9 +4,8 @@ You have to hit the initial seed then use Sweet Scent on the indicated advances 
 Make sure you don't have egg in your party at the indicated slot.
 '''
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG, LCRNGR
 from datetime import datetime

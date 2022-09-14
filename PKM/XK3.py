@@ -1,6 +1,5 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from Util import ByteStruct, SIZE_3XSTORED, get_hp_type, get_hp_damage
 from PKM import species_id_to_dex_number, species_to_gender_ratio, species_to_abilities, get_hp_type, get_hp_damage
@@ -43,6 +42,10 @@ class XK3(ByteStruct):
     def ot_friendship(self):
         return self.u16_from_be_bytes(0x06)
     
+    @property
+    def ball(self):
+        return self.data[0x0F]
+
     @property
     def level(self):
         return self.data[0x11]
@@ -89,13 +92,16 @@ class XK3(ByteStruct):
     
     @property
     def shiny_xor(self):
-        pid = self.pid
-        return (pid >> 16) ^ (pid & 0xffff) ^ self.tid ^ self.sid
+        return (self.pid >> 16) ^ (self.pid & 0xffff) ^ self.tid ^ self.sid
 
     @property
     def is_shiny(self):
         return self.shiny_xor < 8
     
+    @property
+    def language(self):
+        return self.data[0x37]
+
     @property
     def moves(self):
         return [self.u16_from_be_bytes(0x80 + 4*i) for i in range(4)]
@@ -103,6 +109,10 @@ class XK3(ByteStruct):
     @property
     def pps(self):
         return [self.data[0x82 + 4*i] for i in range(4)]
+    
+    @property
+    def pp_ups(self):
+        return [self.data[0x83 + 4*i] for i in range(4)]
     
     @property
     def stats(self):

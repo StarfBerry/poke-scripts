@@ -1,8 +1,7 @@
 ### Script to recover 16bit initial seed from 32bit target seed ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNGR
 

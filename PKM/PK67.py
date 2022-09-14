@@ -1,6 +1,5 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from Util import ByteStruct, SIZE_6PARTY, SIZE_6STORED, decrypt_array_67, get_checksum, get_hp_type
 
@@ -11,7 +10,7 @@ class PK6(ByteStruct):
         
         self.data = data
 
-        if self.u16_from_le_bytes(0xC8) or self.u16_from_le_bytes(0x58):
+        if self.is_encrypted or not self.is_valid:
             self.data = decrypt_array_67(self.data)
     
     @property
@@ -25,6 +24,10 @@ class PK6(ByteStruct):
     @property
     def is_valid(self):
         return self.checksum == get_checksum(self.data, SIZE_6STORED)
+    
+    @property
+    def is_encrypted(self):
+        return self.u16_from_le_bytes(0xC8) != 0 or self.u16_from_le_bytes(0x58) != 0
 
     @property
     def species(self):
@@ -56,8 +59,7 @@ class PK6(ByteStruct):
     
     @property
     def shiny_xor(self):
-        pid = self.pid
-        return (pid >> 16) ^ (pid & 0xffff) ^ self.tid ^ self.sid
+        return (self.pid >> 16) ^ (self.pid & 0xffff) ^ self.tid ^ self.sid
 
     @property
     def is_shiny(self):
@@ -66,6 +68,10 @@ class PK6(ByteStruct):
     @property
     def nature(self):
         return self.data[0x1C]
+    
+    @property
+    def fateful_encounter(self):
+        return (self.data[0x1D] & 1) == 1
     
     @property
     def gender(self):
@@ -99,6 +105,10 @@ class PK6(ByteStruct):
     @property
     def pps(self):
         return [self.data[0x62 + i] for i in range(4)]
+    
+    @property
+    def pp_ups(self):
+        return [self.data[0x66 + i] for i in range(4)]
 
     @property
     def iv32(self):
@@ -106,8 +116,7 @@ class PK6(ByteStruct):
 
     @property
     def ivs(self):
-        iv32 = self.iv32
-        hp, atk, dfs, spe, spa, spd = ((iv32 >> (5*i)) & 31 for i in range(6))  
+        hp, atk, dfs, spe, spa, spd = ((self.iv32 >> (5*i)) & 31 for i in range(6))  
         return [hp, atk, dfs, spa, spd, spe]
     
     @property
@@ -123,9 +132,21 @@ class PK6(ByteStruct):
         return self.data[0xCA]
     
     @property
+    def ball(self):
+        return self.data[0xDC]
+    
+    @property
+    def language(self):
+        return self.data[0xE3]
+
+    @property
+    def status_condition(self):
+        return self.u32_from_le_bytes(0xE8)
+
+    @property
     def level(self):
         return self.data[0xEC]
-
+    
     @property
     def stats(self):
         curr_hp, max_hp, atk, dfs, spe, spa, spd = (self.u16_from_le_bytes(0xF0 + 2*i) for i in range(7))
@@ -134,3 +155,6 @@ class PK6(ByteStruct):
 class PK7(PK6):
     def __init__(self, data):
         super().__init__(data)
+
+class PB7(PK6):
+    pass

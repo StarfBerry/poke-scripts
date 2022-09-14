@@ -1,8 +1,7 @@
 ### Script to mess with Jirachi rng in Gen 3 games ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG, GCRNG, GCRNGR, gcrng_recover_lower_16bits_pid, channel_recover_lower_27bits_ivs
 from Util import get_ivs, get_nature, format_ivs, compare_ivs

@@ -1,9 +1,7 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys, z3
+sys.path.append(os.path.dirname(__file__) + "\..")
 
-import z3
-from Util import reverse_lshift_xor_mask, reverse_rshift_xor_mask
+from Util.Bits import reverse_lshift_xor_mask, reverse_rshift_xor_mask
 
 class MT:
     A = 0x9908B0DF
@@ -11,15 +9,13 @@ class MT:
     C = 0xEFC60000
     M = 397
     N = 624
-
-    MASK = 0xFFFFFFFF
     
     def __init__(self, seed=0):
         self._state = [0] * MT.N
 
-        self._state[0] = seed & MT.MASK
+        self._state[0] = seed & 0xffffffff
         for i in range(1, MT.N):
-            self._state[i] = (0x6C078965 * (self._state[i-1] ^ (self._state[i-1] >> 30)) + i) & MT.MASK
+            self._state[i] = (0x6C078965 * (self._state[i-1] ^ (self._state[i-1] >> 30)) + i) & 0xffffffff
 
         self._twist()
         self._index = 0
@@ -101,7 +97,7 @@ class MT:
     def untwist(state):
         for i in range(MT.N-1, -1, -1):         
             y = state[i] ^ state[(i + MT.M) % MT.N]
-            if y > 0x7fffffff: # y is a 31 bits without the xor
+            if y > 0x7fffffff:
                 y ^= MT.A
             
             prev = (y << 1) & 0x80000000
@@ -116,7 +112,7 @@ class MT:
        
     @staticmethod
     def reverse_init_linear(s, i):
-        s = (0x9638806D * (s - i)) & MT.MASK
+        s = (0x9638806D * (s - i)) & 0xffffffff
         return s ^ (s >> 30)
     
     @staticmethod
@@ -173,7 +169,8 @@ class MT:
     def recover_seed_from_untempered_state(state, min_advc=0, max_advc=10_000):
         for _ in range(min_advc // MT.N):
             MT.untwist(state)
-        for _ in range((max_advc // MT.N) + 1):
+        advc = (max_advc - min_advc) // MT.N
+        for _ in range(advc + 1):
             seed = MT.recover_seed_from_state_values(state[0], state[227])
             if seed != -1:
                 return seed
@@ -195,7 +192,7 @@ class MT:
         state[0] = seed
         for i in range(1, MT.N):
             tmp = 0x6C078965 * (state[i-1] ^ (z3.LShR(state[i-1], 30))) + i
-            state[i] = tmp & MT.MASK
+            state[i] = tmp & 0xffffffff
         
         state = MT.z3_twist(state)
         
@@ -272,3 +269,12 @@ if __name__ == "__main__":
     test = MT.recover_seed_from_consecutive_outputs(outputs)
     print("time:", time() - start)
     print(hex(seed), hex(test))'''
+
+    seed = randrange(0, 1 << 32)
+    a = randrange(1_000_000, 1_500_000)
+    rng = MT(seed)
+    rng.advance(a)
+
+    test = MT.recover_seed_from_untempered_state(rng.state, max_advc=1_500_000)
+
+    print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {a}")

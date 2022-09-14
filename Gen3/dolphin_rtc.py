@@ -1,23 +1,10 @@
 ### Dolphin Seed to Time ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import GCRNGR, gcrng_recover_lower_16bits_pid
 from datetime import datetime, timedelta
-
-'''def search_dolphin_seed(calibration_seed, target_seed, dt_start, max_res):
-    res = 0
-    seconds = 0
-    while res < max_res:
-        d = GCRNG.calc_distance(calibration_seed, target_seed)
-        if min_advc <= d <= max_advc:
-            _dt = dt_start + timedelta(seconds=seconds)
-            print(f"Seed: {calibration_seed:08X} | Advances: {d:{len(str(max_advc))}d} | DateTime: {_dt}")
-            res += 1
-        calibration_seed = (calibration_seed + 40_500_000) & 0xffffffff
-        seconds += 1'''
 
 def calc_dolphin_seed_distance(s1, s2):
     if (s1 & 0x1F) != (s2 & 0x1F):
@@ -25,7 +12,7 @@ def calc_dolphin_seed_distance(s1, s2):
     diff = (s2 - s1) >> 5
     return (0x4E4069 * diff) & 0x7ffffff
 
-def search_dolphin_seed(calibration_seed, target_seed, dt_start, dt_end, min_advc=0, max_advc=100_000):
+def search_dolphin_seed(calibration_seed, target_seed, dt_start, dt_end, min_advc=0, max_advc=10_000):
     rng = GCRNGR(target_seed)
     rng.advance(min_advc)
     low = calibration_seed & 0x1F

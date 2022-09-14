@@ -4,9 +4,8 @@ Useful if you want a custom pid + specific ivs (to make hex speak pun or replica
 To make a custom pid, you have to setup the 16bit low beforehand (e.g. with egg_low_3.py).
 '''
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG, LCRNGR
 from Util import get_ivs, compare_ivs_egg

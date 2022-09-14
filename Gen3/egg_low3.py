@@ -1,8 +1,7 @@
 ### Script to hit a specific 16bit low for egg's pid in RS and FRLG games ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG
 from Util import ask_int, u8, u16, u32

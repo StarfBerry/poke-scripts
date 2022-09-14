@@ -1,8 +1,7 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
-from Util import reverse_lshift_xor_mask
+from Util.Bits import reverse_lshift_xor_mask
 from RNG import MT 
 
 class SFMT:
@@ -31,15 +30,19 @@ class SFMT:
         self._twist()
         self._index = 0
         
-        self.b64 = b64
-        self.next = self._next64 if self.b64 else self._next32
+        if b64:
+            self.next = self._next64
+            self._a = 2
+        else:
+            self.next = self._next32
+            self._a = 1 
     
     @property
     def state(self):
         return self._state.copy()
 
     def advance(self, n=1):
-        self._index += n * 2 if self.b64 else n
+        self._index += n * self._a
 
         if self._index >= SFMT.N:
             q, self._index = divmod(self._index, SFMT.N)
@@ -61,11 +64,11 @@ class SFMT:
             self._twist()
             self._index = 0
 
-        low = self._state[self._index]
-        high = self._state[self._index + 1]
+        l = self._state[self._index]
+        h = self._state[self._index + 1]
         self._index += 2
 
-        return (high << 32) | low
+        return (h << 32) | l
     
     def _period_certification(self):
         inner = 0
@@ -157,15 +160,20 @@ class SFMT:
     @staticmethod
     def recover_seed_from_state(state, min_advc=0, max_advc=10_000, b64=True):
         n = SFMT.N // 2 if b64 else SFMT.N
+        
         for _ in range(min_advc // n):
             SFMT.untwist(state)
-        for _ in range((max_advc // n) + 1):
+        
+        advc = (max_advc - min_advc) // n
+        for _ in range(advc + 1):
             s4, s5 = state[4], state[5]
             SFMT.untwist(state)
             seed = MT.reverse_init_loop(state[4], 4)
             test = SFMT(seed)
+            
             if test._state[4] == s4 and test._state[5] == s5:
                 return seed
+        
         return -1
                
 if __name__ == "__main__":
@@ -191,10 +199,10 @@ if __name__ == "__main__":
     
     '''for _ in range(1_000):
         seed = randrange(0, lim)
-        advc = randrange(0, 10_000)
+        advc = randrange(3_000, 4_000)
         sfmt = SFMT(seed)
         sfmt.advance(advc)
-        test = SFMT.recover_seed_from_state(sfmt.state)
+        test = SFMT.recover_seed_from_state(sfmt.state, min_advc=3_000, max_advc=4_000)
         
         if test != seed:
             print(hex(seed))'''

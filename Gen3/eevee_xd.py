@@ -1,8 +1,7 @@
 ### Script to search for starter Eevee with specific traits in Pokemon XD Gales of Darkness ###
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import GCRNG, GCRNGR, gcrng_recover_lower_16bits_pid, gcrng_recover_lower_16bits_ivs
 from Util import get_nature, get_gender, get_ivs, get_hp_type, get_hp_damage, format_ivs

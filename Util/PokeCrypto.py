@@ -1,10 +1,9 @@
 # Reference: https://github.com/kwsch/PKHeX/blob/master/PKHeX.Core/PKM/Util/PokeCrypto.cs
 
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__))
 
-from Util import u16_from_le_bytes, u32_from_le_bytes
+from Bytes import u16_from_le_bytes, u32_from_le_bytes
 
 BLOCK_POSITION = [
     0, 1, 2, 3, 0, 1, 3, 2, 0, 2, 1, 3, 0, 3, 1, 2, 0, 2, 3, 1, 0, 3, 2, 1, 1, 0, 2, 3, 1, 0, 3, 2,

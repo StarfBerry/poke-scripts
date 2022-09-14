@@ -1,6 +1,5 @@
-import sys
-sys.path.append(".")
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(__file__) + "\..")
 
 from Util import ByteStruct, SIZE_3CSTORED, get_hp_type, get_hp_damage
 from PKM import species_id_to_dex_number, species_to_gender_ratio, species_to_abilities
@@ -38,7 +37,15 @@ class CK3(ByteStruct):
     @property
     def nature(self):
         return self.pid % 25
-
+        
+    @property
+    def language(self):
+        return self.data[0x0B]
+    
+    @property
+    def ball(self):
+        return self.data[0x0F]
+    
     @property
     def sid(self):
         return self.u16_from_be_bytes(0x14)
@@ -49,13 +56,12 @@ class CK3(ByteStruct):
 
     @property
     def shiny_xor(self):
-        pid = self.pid
-        return (pid >> 16) ^ (pid & 0xffff) ^ self.tid ^ self.sid
+        return (self.pid >> 16) ^ (self.pid & 0xffff) ^ self.tid ^ self.sid
 
     @property
     def is_shiny(self):
         return self.shiny_xor < 8
-    
+
     @property
     def level(self):
         return self.data[0x60]
@@ -68,6 +74,10 @@ class CK3(ByteStruct):
     def pps(self):
         return [self.data[0x7A + 4*i] for i in range(4)]
     
+    @property
+    def pp_ups(self):
+        return [self.data[0x7B + 4*i] for i in range(4)]
+
     @property
     def held_item(self):
         return self.u16_from_be_bytes(0x88)
@@ -96,6 +106,10 @@ class CK3(ByteStruct):
     def ot_friendship(self):
         return min(255, self.u16_from_be_bytes(0xB0))
     
+    @property
+    def fateful_encounter(self):
+        return ((self.data[0xC9] >> 4) & 1) == 1
+
     @property
     def pkrs_strain(self):
         return self.data[0xCA] & 0xF
