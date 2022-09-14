@@ -153,12 +153,10 @@ class TinyMT:
 
         vec = gf2_to_int(bits)
         
-        for i in range(127):
-            bits[i] = (vec & MAT_TINYMT_127_LSB_INV[i]).bit_count() & 1
+        state_bits = [(vec & MAT_TINYMT_127_LSB_INV[i]).bit_count() & 1 for i in range(127)]        
+        state_bits.insert(31, 0)
         
-        bits.insert(31, 0)
-        
-        return gf2_to_ints(bits, 32)
+        return gf2_to_ints(state_bits, 32)
 
     @staticmethod
     def recover_seed_from_127_lsb(bits, min_advc=0, max_advc=10_000):
