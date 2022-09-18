@@ -40,3 +40,10 @@ def change_endian_64(x):
     a = change_endian(x & 0xffffffff)
     b = change_endian(x >> 32)
     return (a << 32) | b
+
+# lsb at index 0
+def bits_to_int(bits):
+    return sum(bits[i] << i for i in range(len(bits)))
+
+def bits_to_ints(bits, size=32):
+    return [bits_to_int(bits[i*size:(i+1)*size]) for i in range(len(bits) // size)]

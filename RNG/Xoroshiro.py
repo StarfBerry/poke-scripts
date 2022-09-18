@@ -1,7 +1,7 @@
 import os, sys
-sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.dirname(__file__) + "\..")
 
-from Matrix_GF2.GF2 import gf2_to_int, xoroshiro_jump_poly
+from Util.Bits import bits_to_int
 
 class Xoroshiro:
     MASK = 0xFFFFFFFFFFFFFFFF
@@ -20,13 +20,13 @@ class Xoroshiro:
     
     def next(self):
         s0, s1 = self.s0, self.s1
-        res = (s0 + s1) & Xoroshiro.MASK
+        out = (s0 + s1) & Xoroshiro.MASK
         s1 ^= s0
         
         self.s0 = Xoroshiro.rotl(s0, 24) ^ s1 ^ (s1 << 16) & Xoroshiro.MASK
         self.s1 = Xoroshiro.rotl(s1, 37)
         
-        return res
+        return out
     
     def prev(self):
         s1 = Xoroshiro.rotl(self.s1, 27)
@@ -40,18 +40,25 @@ class Xoroshiro:
         return (s0 + s1) & Xoroshiro.MASK
     
     def jump_ahead(self, n):
-        jump = xoroshiro_jump_poly(n)
-        s0 = s1 = 0
-
-        while jump:
-            if jump & 1:
-                s0 ^= self.s0
-                s1 ^= self.s1
-            
-            self.next()
-            jump >>= 1
+        i = 0
         
-        self.s0, self.s1 = s0, s1
+        while n and i < 128:
+            if n & 1:
+                s0 = s1 = 0
+                jump = XOROSHIRO_JUMP_TABLE[i]
+
+                while jump:
+                    if jump & 1:
+                        s0 ^= self.s0
+                        s1 ^= self.s1
+                    
+                    self.next()
+                    jump >>= 1
+                
+                self.s0, self.s1 = s0, s1
+            
+            n >>= 1
+            i += 1          
             
     def advance(self, n=1):
         for _ in range(n):
@@ -70,18 +77,7 @@ class Xoroshiro:
 
     def clone(self):
         return Xoroshiro(self.s0, self.s1)
-         
-    @staticmethod
-    def rotl(x, k):
-        return ((x << k) | (x >> (64 - k))) & Xoroshiro.MASK
-    
-    @staticmethod
-    def get_mask(x):
-        x -= 1
-        for i in range(6):
-            x |= x >> (1 << i)
-        return x
-    
+
     @staticmethod
     def advance_state(state, n):
         rng = Xoroshiro(state >> 64, state & Xoroshiro.MASK)
@@ -93,14 +89,30 @@ class Xoroshiro:
         rng = Xoroshiro(state >> 64, state & Xoroshiro.MASK)
         rng.back(n)
         return rng.state
+
+    @staticmethod
+    def rotl(x, k):
+        return ((x << k) | (x >> (64 - k))) & Xoroshiro.MASK
     
     @staticmethod
-    def recover_swsh_seed_from_state(s0, s1, max_advc=10_000):
+    def get_mask(x):
+        x -= 1
+        for i in range(6):
+            x |= x >> (1 << i)
+        return x
+        
+    @staticmethod
+    def recover_swsh_seed_from_state(s0, s1, min_advc=0, max_advc=10_000):
         rng = Xoroshiro(s0, s1)
-        for _ in range(max_advc):
+        rng.back(min_advc)
+        
+        advc = max_advc - min_advc
+        for _ in range(advc + 1):
             if rng.s1 == 0x82A2B175229D6A5B:
                 return rng.s0
+            
             rng.prev()
+        
         return -1
     
     @staticmethod
@@ -112,14 +124,48 @@ class Xoroshiro:
         if len(bits) != 128:
             raise ValueError("128 bits are needed to recover the internal state.")
 
-        vec = gf2_to_int(bits)
+        vec = bits_to_int(bits)
 
-        state = 0
-        for i in range(128):
-            bit = (vec & MAT_XOROSHIRO_128_LSB_INV[i]).bit_count() & 1
-            state |= bit << i
+        return sum(((vec & MAT_XOROSHIRO_128_LSB_INV[i]).bit_count() & 1) << i for i in range(128))
+    
+    @staticmethod
+    def recover_swsh_seed_from_128_lsb(bits, min_advc=0, max_advc=10_000):
+        state = Xoroshiro.recover_state_from_128_lsb(bits)
+        return Xoroshiro.recover_swsh_seed_from_state(state >> 64, state & Xoroshiro.MASK, min_advc, max_advc)
 
-        return state
+XOROSHIRO_JUMP_TABLE = (
+    0x00000000000000000000000000000002, 0x00000000000000000000000000000004, 0x00000000000000000000000000000010, 0x00000000000000000000000000000100, 
+    0x00000000000000000000000000010000, 0x00000000000000000000000100000000, 0x00000000000000010000000000000000, 0x0008828E513B43D5095B8F76579AA001,
+    0x7A8FF5B1C465A931162AD6EC01B26EAE, 0xB18B0D36CD81A8F5B4FBAA5C54EE8B8F, 0x23AC5E0BA1CECB291207A1706BEBB202, 0xBB18E9C8D463BB1B2C88EF71166BC53D,
+    0xE3FBE606EF4E8E09C3865BB154E9BE10, 0x28FAAAEBB31EE2DB1A9FC99FA7818274, 0x30A7C4EEF203C7EB588ABD4C2CE2BA80, 0xA425003F3220A91D9C90DEBC053E8CEF,
+    0x81E1DD96586CF985B82CA99A09A4E71E, 0x4F7FD3DFBB820BFB35D69E118698A31D, 0xFEE2760EF3A900B349613606C466EFD3, 0xF0DF0531F434C57DBD031D011900A9E5,
+    0x442576715266740C235E761B3B378590, 0x1E8BAE8F680D2B353710A7AE7945DF77, 0xFD7027FE6D2F676475D8E7DBCEDA609C, 0x28EFF231AD438124DE2CBA60CD3332B5, 
+    0x1808760D0A0909A1377E64C4E80A06FA, 0xB9A362FAFEDFE9D20CF0A2225DA7FB95, 0xF57881AB117349FD2BAB58A3CADFC0A3, 0x849272241425C9968D51ECDB9ED82455, 
+    0xF1CCB8898CBC07CD521B29D0A57326C1, 0x61179E44214CAAFAFBE65017ABEC72DD, 0xD9AA6B1E93FBB6E46C446B9BC95C267B, 0x86E3772194563F6D64F80248D23655C6, 
+    0xD4E95EEF9EDBDBC6FAD843622B252C78, 0x05667023C584A68A598742BBFDDDE630, 0x401AACF87A5E21EE3A9D7DCE072134A6, 0xE114B1E65A950E43F0CC32EAF522F0E0, 
+    0x905DFF85834FB8D1EB2BEAA80D3FD8A7, 0xC449C069734817CB61F29536E1BB6B99, 0x1E5BC0FE7032F3DF390CD235D35187DA, 0x3F399E6F1EA22DBC744E5F1168BA3345, 
+    0xD47A02636F041CCA8CC9AA88A153F5F8, 0xF83C06B106D3B7AB08D037056C80B9E0, 0x14223EEDAE116A834CE3C123D196BF7A, 0x24BFD164204335AEB1B206870DA4E89A, 
+    0x4A5953C8F4BC2A51207BB2453717CF67, 0xF6B3F196DC551CCFA14E342BB11FF7E6, 0x5B6233B76FA214D75422BCA5015DD3B7, 0xF20D7136458BD924EDE7341C00C65B85, 
+    0x9B19BA6B3752065AD769CFC9028DEB78, 0x4F27796502238C48C7B0E531ABE7E4BD, 0xB7B17DCD250033051C6D3BA4BB94182A, 0xAAAE579366147D073AE9471D0E2D0BCF, 
+    0x0D56BB288C661CCF8F9CD3794CA46FBF, 0x0402342EEDFF424CDB2AD4E9C15A9D4E, 0x4E71559E6D0E7F0079E061AF5BE21395, 0x8367AF1C9D6C140696E7D88C0794E785, 
+    0x0DBFCD2453D1D33FCCDDA809DB64B3E7, 0x3309E57F180D4FF66C64681C21CD0286, 0xB439F330AB3B9715ACB8D4C6BA67113E, 0xC58F079D0205BCF3BAD04CA5D96E2CD3, 
+    0x09417D8C80A37AA7EBFBC2723A906760, 0x52F51AC639E0971238AC01316167183D, 0xF37EAD6EA53B96BA7A134006D4EFA484, 0xDC1C01799CB8D734351561E58F8572D4, 
+    0x170865DF4B3201FCDF900294D8F554A5, 0xB2A7B279A8CB1F502992EAD4972EAED2, 0xE7859C665BE57882C026A7D9E04A7700, 0x4B4A7AA8C389701CB4CB6197DEA2B1FE, 
+    0xADB7753D55646EEF0DCFC5B909E7DF4D, 0xC80926301806A352468431669864F789, 0xC05DA051EC96AF1D22B6C1736285FCC8, 0xF88F6BAC8FD3044874C1DAAC8729D8BB, 
+    0x752B98D002C408F7847757C126B23E45, 0x1AA7BC96DBACE1100F9EAA62D0C9E2A3, 0xC469B29353A4984B7475D71B98314377, 0x4B6DD41BCE3BB499BBB7D266D61C85EA, 
+    0xE023777E70B3A2F8C419B3742570E16F, 0x131E94FB35203D802A71DB3A3CE8B968, 0x9240C95B1E7FA08B2897BB8961B4DCE9, 0xB879FCA0915F893FF0FC3553D7881D5F, 
+    0x2ADCA86FBEFE1366E754DB3FBC7536BC, 0x0A40A688D77855BA0A9E201ADFE7BAA9, 0x17771C905E0775A81D0D601E49C35837, 0x2CF775E419A607E09B031395AEC7B584,
+    0x93A7CF27DEC9B30679EAD2EEDDF66699, 0x93615189FE85B7D5E1B9805C107679FC, 0x466421124B50FBFB2C3925DCD790E3D6, 0x1CDA7BD04E3BB94BDCA9B0FA4E95600E,
+    0x5EC431D73BBFE49FEFC7905E1CBB5FFB, 0x31A1F85FD532F302854414811D534483, 0xED9B991C09177E2FADB9BA2958F30B6E, 0x38D9E87DFFDFCA7076F8FDF26B0D1CBB,
+    0xD8E9E7254052AF4D51F21CDDCEBDB8C7, 0x62769780D13FBC08A03F796EFB295305, 0x66E5456C2EAEDBFF4F2083F6B19E628A, 0xACE8D6CE8E3FBA178B2BE9CD79734BED,
+    0xDDDF9B1090AA7AC1D2A98B26625EEE7B, 0x00D67DC46AD286954FFF128094EDD94C, 0xF9540570703E7CF3726438E9A1D3C6EA, 0x066A9599766619B592CC6A0937C9D34E,
+    0xA4E540C7AC49AA1BC5730DE058E1047F, 0xC2EDFC1AB51C00ADE408BBECDA066551, 0xF11753A4339E78C3C5477EA8821CE588, 0xBB42E906EFB125403C6058E633063180,
+    0x4E86F36C495EEEDBBEC40E0518086E21, 0xE8345A7C487FEFD6465276434FD98954, 0x688B7628742214343ADAEA5CDFE12E3B, 0x833801923A05F253C9DFFA95904E99B1,
+    0x58A00D23A8086646A10C3FB0B18DF787, 0xEC69708D487DBFC4A4E41F760281C3D0, 0x47176F17DE7FF0E9B8880FFF0E41261C, 0x4F40C533643920EA58EE3B30F542767E,
+    0x83FD48D6B962058415F2D25B60C5ACD7, 0x0CE303C7D3AABBC8E448C83950A687EA, 0x1746715DF0DD8FE3A6FF7863C363CFD4, 0xC00185964CAEF8BB7E9D8517B195D9C9,
+    0xB6BDE02BD004B14440DDB4DAF3FBDDA8, 0xBA43C63EC5A9F1877A794B820672A49B, 0x2467071B1D261621C1BE31E7536236FB, 0x5A6FC0435F011DAAF0EEC34DAEA486FB,
+    0xA5AF34331C044D81F42C01A2A3815DB4, 0xDB43B553CD16EA44DF7964C343B312DE, 0x432C2BBCD03E65F68454182464C29903, 0xCDF56412D1E7BA6E7B6C0ECC6CB5ADBB,
+    0xAC13C8B2FF838036380B97764C9F7748, 0x71D208CC2E5C56E91868A9F5A4FD4D64, 0xD1D08A01B73DE005E89F5FE075D74A79, 0xA9495C12936AD0FD25AA87F3C2704C69)
 
 MAT_XOROSHIRO_128_LSB_INV = (
     0xC1FED39E3D33A407A10AE2D3E8D7C58C, 0xABD3BAF25622571D3A9507CBEEB465B0, 0x263BFA7F89C737AA6B91E11E86093F1F, 0x0861F7EAB6D2F94608AD24BF10E9E679, 
@@ -157,6 +203,7 @@ MAT_XOROSHIRO_128_LSB_INV = (
 
 if __name__ == "__main__":
     from random import randrange
+    from time import time
     
     lim = 1 << 64
 
@@ -169,6 +216,26 @@ if __name__ == "__main__":
 
     print(a == b)'''
     
+    '''seed = randrange(0, 1 << 64)
+    a = 12_345_678
+
+    rng1 = Xoroshiro(seed)
+    rng1.advance(a)
+    print(hex(rng1.state))
+
+    rng2 = Xoroshiro(seed)
+    rng2.jump_ahead(a)
+    print(hex(rng2.state))'''
+
+    '''seed = randrange(0, 1 << 64)
+    rng = Xoroshiro(seed)
+    rng.advance(5784)
+
+    bits = [rng.next() & 1 for _ in range(128)]
+    test = Xoroshiro.recover_swsh_seed_from_128_lsb(bits)
+
+    print(hex(seed), hex(test))'''
+
     seed = randrange(0, lim)
     rng = Xoroshiro(seed)
     rng.advance(42)
@@ -181,14 +248,3 @@ if __name__ == "__main__":
     print(f"Expected: {state:032X}")
     print(f"Result:   {test:032X}")
     print(state == test)
-
-    '''seed = randrange(0, 1 << 64)
-    a = 12_345_678
-
-    rng1 = Xoroshiro(seed)
-    rng1.advance(a)
-    print(hex(rng1.state))
-
-    rng2 = Xoroshiro(seed)
-    rng2.jump_ahead(a)
-    print(hex(rng2.state))'''

@@ -169,12 +169,15 @@ class MT:
     def recover_seed_from_untempered_state(state, min_advc=0, max_advc=10_000):
         for _ in range(min_advc // MT.N):
             MT.untwist(state)
+        
         advc = (max_advc - min_advc) // MT.N
         for _ in range(advc + 1):
             seed = MT.recover_seed_from_state_values(state[0], state[227])
             if seed != -1:
                 return seed
+            
             MT.untwist(state)
+        
         return -1
     
     @staticmethod
@@ -212,51 +215,6 @@ if __name__ == "__main__":
     
     lim = 1 << 32
        
-    '''for _ in range(10_000):
-        seed = randrange(0, lim)
-        offset = randrange(0, 396)
-        mt = MT(seed)
-        test = MT.recover_seed_from_state_values(mt.state[offset], mt.state[227+offset], offset)
-        if test != seed:
-            print(hex(seed))'''
-    
-    '''for _ in range(10_000):
-        seed = randrange(0, lim)
-        offset = randrange(0, 396)
-        mt = MT(seed)
-        mt.advance(offset)
-        r0 = mt.next()
-        mt.advance(226)
-        r227 = mt.next()
-        test = MT.recover_seed_from_rands(r0, r227, offset)
-        if test != seed:
-            print(hex(seed))'''
-
-    '''for _ in range(1_000):
-        seed = randrange(0, lim)
-        advc = randrange(1000, 10_000)
-        mt = MT(seed)
-        mt.advance(advc)
-        test = MT.recover_seed_from_untempered_state(mt.state)
-        if test != seed:
-            print(hex(seed))'''
-    
-    '''seed = randrange(0, lim)
-    mt = MT(seed)
-    mt.advance(624*9745)
-    state = [mt.next() for _ in range(624)]
-    test = MT.recover_seed_from_tempered_state(state, max_advc=6_240_000)
-    print(hex(seed), hex(test))'''
-
-    '''seed = randrange(0, lim)
-    mt = MT(seed)
-
-    state = [mt.next() for _ in range(624)]
-    start = time()
-    test = MT.recover_seed_from_tempered_state(state)
-    print(time() - start)
-    print(hex(seed), hex(test))'''
-
     '''it = 2
     advc = 0
     seed = randrange(0, lim)
@@ -270,11 +228,15 @@ if __name__ == "__main__":
     print("time:", time() - start)
     print(hex(seed), hex(test))'''
 
-    seed = randrange(0, 1 << 32)
+    seed = randrange(0, lim)
     a = randrange(1_000_000, 1_500_000)
+    a -= a % 624
+    
     rng = MT(seed)
     rng.advance(a)
 
-    test = MT.recover_seed_from_untempered_state(rng.state, max_advc=1_500_000)
+    state = [rng.next() for _ in range(624)]
+
+    test = MT.recover_seed_from_tempered_state(state, max_advc=1_500_000)
 
     print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {a}")

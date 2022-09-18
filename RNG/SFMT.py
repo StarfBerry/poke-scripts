@@ -169,8 +169,8 @@ class SFMT:
             s4, s5 = state[4], state[5]
             SFMT.untwist(state)
             seed = MT.reverse_init_loop(state[4], 4)
-            test = SFMT(seed)
             
+            test = SFMT(seed)
             if test._state[4] == s4 and test._state[5] == s5:
                 return seed
         
@@ -180,23 +180,7 @@ if __name__ == "__main__":
     from random import randrange
 
     lim = 1 << 32
-
-    '''test = SFMT(0x12345678)
-    for _ in range(100):
-        print(hex(test.next()))'''
-
-    '''for _ in range(1_000):
-        seed = randrange(0, lim)
-        rng = SFMT(seed)
-        a = rng.state
-        rng.advance(624)
-        b = rng.state
-
-        a_ = SFMT.untwist(b)
-
-        if a != a_:
-            print(hex(seed))'''
-    
+   
     '''for _ in range(1_000):
         seed = randrange(0, lim)
         advc = randrange(3_000, 4_000)
@@ -214,10 +198,17 @@ if __name__ == "__main__":
     seed = randrange(0, lim)
     
     advc = randrange(700_000, 1_000_000)
-    
+    advc -= advc % 312
+
     sfmt = SFMT(seed)
     sfmt.advance(advc)
-    
-    test = SFMT.recover_seed_from_state(sfmt.state, max_advc=1_000_000)
+
+    state = [0] * 624
+    for i in range(0, 624, 2):
+        x = sfmt.next()
+        state[i] = x & 0xffffffff
+        state[i+1] = x >> 32
+
+    test = SFMT.recover_seed_from_state(state, max_advc=1_000_000)
 
     print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {advc}")
