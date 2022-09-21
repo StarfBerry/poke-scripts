@@ -38,8 +38,8 @@ class TinyMT:
         
         while n and i < 127:
             if n & 1:
-                s0 = s1 = s2 = s3 = 0
                 jump = TINYMT_JUMP_TABLE[i]
+                s0 = s1 = s2 = s3 = 0
 
                 while jump:
                     if jump & 1:
@@ -158,7 +158,7 @@ class TinyMT:
                 if c[1] == TinyMT.A and c[2] == TinyMT.B:
                     return c[0]
             
-            rng.back()
+            rng._prev_state()
         
         return -1
     
@@ -312,7 +312,7 @@ if __name__ == "__main__":
     rng2.jump_ahead(a)
     print(rng2)'''
 
-    seed = randrange(0, 1 << 32)
+    '''seed = randrange(0, 1 << 32)
     rng = TinyMT(seed)
     rng.advance(randrange(0, 100))
 
@@ -324,4 +324,4 @@ if __name__ == "__main__":
     test = TinyMT.recover_state_from_127_lsb(bits)
 
     for i in range(4):
-        print(f"{state[i]:08X} {test[i]:08X}")
+        print(f"{state[i]:08X} {test[i]:08X}")'''

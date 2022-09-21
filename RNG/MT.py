@@ -148,14 +148,14 @@ class MT:
         s228_31 = (x << 1) | s228_lsb
         for msb in range(2):
             s228 = (msb << 31) | s228_31
+            
             s227 = MT.reverse_init_linear(s228, 228 + offset)
-
             if (s227 >> 31) != s227_msb:
                 continue
 
             seed = MT.reverse_init_loop(s228, 228 + offset)
+            
             mt = MT(seed)
-
             if mt._state[offset] == u0:
                 return seed
         

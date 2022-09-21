@@ -76,6 +76,9 @@ def matrix_inverse(mat):
 def matrix_power(mat, n):
     return np.linalg.matrix_power(mat, n)
 
+def matrix_solve_right(a, b):
+    return np.linalg.solve(a, b)
+
 def matrix_characteristic_polynomial(mat):
     charpoly = Matrix(mat).charpoly().all_coeffs() 
     return reduce(lambda p, q: (p << 1) | (q & 1), charpoly)
@@ -159,7 +162,7 @@ def matrix_tinymt_temper():
 def matrix_tinymt_127_lsb():
     state = matrix_identity(127)
     temper = matrix_tinymt_temper() @ matrix_add_bit(31, 128)
-    next_state =  matrix_remove_bit(31, 128) @ matrix_tinymt() @ matrix_add_bit(31, 128)
+    next_state = matrix_remove_bit(31, 128) @ matrix_tinymt() @ matrix_add_bit(31, 128)
 
     m = matrix_zero(127)
     for i in range(127):

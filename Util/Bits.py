@@ -10,23 +10,36 @@ def u32(x):
 def u64(x):
     return x & 0xffffffffffffffff
 
-def lobits(x, b):
-    return x & ((1 << b) - 1)
- 
-def bits(x, start, size):
-    return lobits(x >> start, size)
-
-def exbits(x, start, size, b=32):
-    return bits(x, start, size) << (b - size)
-
-def reverse_lshift_xor_mask(x, shift=1, mask=0xffffffff, b=32):
-    for i in range(shift, b, shift):
-        x ^= (bits(x, i-shift, shift) & (mask >> i)) << i
+# reverse x ^= (x << shift) & mask
+def reverse_lshift_xor_mask(x, shift=1, mask=0xffffffff):
+    m = (1 << shift) - 1
+    for i in range(shift, 32, shift):
+        tmp = (x >> (i - shift)) & m
+        x ^= (tmp & (mask >> i)) << i
     return x
 
-def reverse_rshift_xor_mask(x, shift=1, mask=0xffffffff, b=32):
-    for i in range(shift, b, shift):
-        x ^= (exbits(x, b-i, shift) & (mask << i)) >> i
+# reverse x ^= (x >> shift) & mask
+def reverse_rshift_xor_mask(x, shift=1, mask=0xffffffff):
+    m = (1 << shift) - 1
+    s = 32 - shift
+    for i in range(shift, 32, shift):
+        tmp = ((x >> (32 - i)) & m) << s
+        x ^= (tmp & (mask << i)) >> i
+    return x
+
+def reverse_lshift_xor_mask_64(x, shift=1, mask=0xffffffffffffffff):
+    m = (1 << shift) - 1
+    for i in range(shift, 64, shift):
+        tmp = (x >> (i - shift)) & m
+        x ^= (tmp & (mask >> i)) << i
+    return x
+
+def reverse_rshift_xor_mask_64(x, shift=1, mask=0xffffffffffffffff):
+    m = (1 << shift) - 1
+    s = 64 - shift
+    for i in range(shift, 64, shift):
+        tmp = ((x >> (64 - i)) & m) << s
+        x ^= (tmp & (mask << i)) >> i
     return x
 
 def is_power2(x):

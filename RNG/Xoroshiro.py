@@ -44,8 +44,8 @@ class Xoroshiro:
         
         while n and i < 128:
             if n & 1:
-                s0 = s1 = 0
                 jump = XOROSHIRO_JUMP_TABLE[i]
+                s0 = s1 = 0
 
                 while jump:
                     if jump & 1:
@@ -100,7 +100,7 @@ class Xoroshiro:
         for i in range(6):
             x |= x >> (1 << i)
         return x
-        
+
     @staticmethod
     def recover_swsh_seed_from_state(s0, s1, min_advc=0, max_advc=10_000):
         rng = Xoroshiro(s0, s1)

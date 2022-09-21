@@ -51,8 +51,8 @@ class Xorshift:
         
         while n and i < 128:
             if n & 1:
-                s0 = s1 = s2 = s3 = 0
                 jump = XORSHIFT_JUMP_TABLE[i]
+                s0 = s1 = s2 = s3 = 0
 
                 while jump:
                     if jump & 1:
