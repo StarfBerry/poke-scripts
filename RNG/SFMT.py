@@ -17,9 +17,9 @@ class SFMT:
     MSK3 = 0xBFFAFFFF
     MSK4 = 0xBFFFFFF6
     
-    PARITY = [0x1, 0x0, 0x0, 0x13C9E684]
+    PARITY = (0x1, 0x0, 0x0, 0x13C9E684)
     
-    def __init__(self, seed, b64=True):
+    def __init__(self, seed):
         self._state = [0] * SFMT.N
 
         self._state[0] = seed
@@ -29,37 +29,12 @@ class SFMT:
         self._period_certification()
         self._twist()
         self._index = 0
-        
-        if b64:
-            self.next = self._next64
-            self._a = 2
-        else:
-            self.next = self._next32
-            self._a = 1 
     
     @property
     def state(self):
         return self._state.copy()
-
-    def advance(self, n=1):
-        self._index += n * self._a
-
-        if self._index >= SFMT.N:
-            q, self._index = divmod(self._index, SFMT.N)
-            for _ in range(q): 
-                self._twist()
-
-    def _next32(self):
-        if self._index == SFMT.N:
-            self._twist()
-            self._index = 0
-
-        n = self._state[self._index]
-        self._index += 1
-
-        return n
-    
-    def _next64(self):
+   
+    def next(self):
         if self._index == SFMT.N:
             self._twist()
             self._index = 0
@@ -70,6 +45,14 @@ class SFMT:
 
         return (h << 32) | l
     
+    def advance(self, n=1):
+        self._index += n * 2
+
+        if self._index >= SFMT.N:
+            q, self._index = divmod(self._index, SFMT.N)
+            for _ in range(q): 
+                self._twist()
+
     def _period_certification(self):
         inner = 0
 
@@ -157,14 +140,15 @@ class SFMT:
 
             a, b, c, d = a-4, (b-4) % SFMT.N, (c-4) % SFMT.N, (d-4) % SFMT.N
     
-    @staticmethod
-    def recover_seed_from_state(state, min_advc=0, max_advc=10_000, b64=True):
-        n = SFMT.N // 2 if b64 else SFMT.N
+    @classmethod
+    def recover_seed_from_state(cls, state, min_advc=0, max_advc=10_000):
+        n = SFMT.N // 2 if cls.__name__ == "SFMT" else SFMT.N
         
         for _ in range(min_advc // n):
             SFMT.untwist(state)
         
         advc = (max_advc - min_advc) // n
+        
         for _ in range(advc + 1):
             s4, s5 = state[4], state[5]
             SFMT.untwist(state)
@@ -175,7 +159,27 @@ class SFMT:
                 return seed
         
         return -1
-               
+
+class SFMT32(SFMT):
+    def next(self):
+        if self._index == SFMT.N:
+            self._twist()
+            self._index = 0
+
+        n = self._state[self._index]
+        self._index += 1
+
+        return n
+    
+    def advance(self, n=1):
+        self._index += n
+
+        if self._index >= SFMT.N:
+            q, self._index = divmod(self._index, SFMT.N)
+            for _ in range(q): 
+                self._twist()
+
+
 if __name__ == "__main__":
     from random import randrange
 
@@ -195,20 +199,30 @@ if __name__ == "__main__":
     rng.advance(11_745)
     print(hex(rng.next()))'''
 
-    seed = randrange(0, lim)
-    
+    '''seed = randrange(0, lim)
     advc = randrange(700_000, 1_000_000)
+    advc -= advc % 624
+
+    rng = SFMT32(seed)
+    rng.advance(advc)
+
+    test = SFMT32.recover_seed_from_state(rng.state, max_advc=1_000_000)
+
+    print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {advc}")'''
+
+    seed = randrange(0, lim)
+    advc = randrange(300_000, 500_000)
     advc -= advc % 312
 
-    sfmt = SFMT(seed)
-    sfmt.advance(advc)
+    rng = SFMT(seed)
+    rng.advance(advc)
 
     state = [0] * 624
     for i in range(0, 624, 2):
-        x = sfmt.next()
+        x = rng.next()
         state[i] = x & 0xffffffff
         state[i+1] = x >> 32
 
-    test = SFMT.recover_seed_from_state(state, max_advc=1_000_000)
+    test = SFMT.recover_seed_from_state(state, max_advc=500_000)
 
     print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {advc}")

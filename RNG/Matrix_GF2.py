@@ -76,9 +76,6 @@ def matrix_inverse(mat):
 def matrix_power(mat, n):
     return np.linalg.matrix_power(mat, n)
 
-def matrix_solve_right(a, b):
-    return np.linalg.solve(a, b)
-
 def matrix_characteristic_polynomial(mat):
     charpoly = Matrix(mat).charpoly().all_coeffs() 
     return reduce(lambda p, q: (p << 1) | (q & 1), charpoly)

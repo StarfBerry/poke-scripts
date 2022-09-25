@@ -67,7 +67,7 @@ class TinyMT:
     def rand(self, lim):
         return (self.next() * lim) >> 32
     
-    def prev_rand(self):
+    def prev_rand(self, lim):
         return (self.prev() * lim) >> 32
     
     def _next_state(self):
