@@ -31,5 +31,7 @@ if __name__ == "__main__":
     max_advc = u32(ask_int("Max Advances: "))
     tids = [int(tid) for tid in input("Target TIDs (x.x.x...): ").split(".")]
     days_since = ask_int("How many days have elapsed since your previous save (can be 0): ") 
+    
     print()
+    
     generate_tickets(game, seed, max_advc, tids, days_since)

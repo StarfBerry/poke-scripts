@@ -13,13 +13,9 @@ def get_new_pid(pid):
         pid = rng.next()
     return pid
 
-if __name__ == "__main__":
-    min_ivs = (30, 0, 30, 31, 30, 31)
-    max_ivs = (31, 0, 31, 31, 31, 31)
-    target_natures = ("Modest", "Timid")
-
-    fmt = "Seed: {:08X} | PID: {:08X} {:9s} -> {:08X} {:9s} | IVs: {}"
+def search_manaphy(min_ivs, max_ivs, target_natures):
     res = False
+    fmt = "Seed: {:08X} | PID: {:08X} {:9s} -> {:08X} {:9s} | IVs: {}"
 
     for hp in range(min_ivs[0], max_ivs[0]+1):
         for atk in range(min_ivs[1], max_ivs[1]+1):
@@ -43,3 +39,10 @@ if __name__ == "__main__":
                                     print(fmt.format(seed, pid1, f"({nat1})", pid2, f"({nat2})", format_ivs(ivs)))
     if not res:
         print("no results :(")
+
+if __name__ == "__main__":
+    min_ivs = (30, 0, 30, 31, 30, 31)
+    max_ivs = (31, 0, 31, 31, 31, 31)
+    target_natures = ("Modest", "Timid")
+
+    search_manaphy(min_ivs, max_ivs, target_natures)

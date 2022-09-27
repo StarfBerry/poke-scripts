@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
-from Util.Bits import reverse_lshift_xor_mask, reverse_rshift_xor_mask, bits_to_int, bits_to_ints
+from Util.Bits import reverse_xor_lshift_mask, reverse_xor_rshift_mask, bits_to_int, bits_to_ints
 
 class TinyMT:    
     A = 0x8F7011EE
@@ -97,28 +97,32 @@ class TinyMT:
             self._state[2] ^= TinyMT.A
             x ^= TinyMT.B
 
-        y = reverse_rshift_xor_mask(y ^ x)
-        x = reverse_lshift_xor_mask(x)
+        y = reverse_xor_rshift_mask(y ^ x)
+        x = reverse_xor_lshift_mask(x)
 
         self._state[3] = y
         self._state[0] = x ^ self._state[1] ^ self._state[2]
         
         x_ = (self._state[2] ^ (y << 10) ^ (y & 1) * TinyMT.B) & 0xffffffff
-        xor = (self._state[1] >> 31) ^ (y & 1) ^ (x_ >> 31) ^ (reverse_lshift_xor_mask(x_) >> 30) & 1
+        xor = (self._state[1] >> 31) ^ (y & 1) ^ (x_ >> 31) ^ (reverse_xor_lshift_mask(x_) >> 30) & 1
 
         if xor:
             self._state[0] ^= 0x80000000
 
     def _temper(self):
         t = (self._state[0] + (self._state[2] >> 8)) & 0xffffffff
-        return self._state[3] ^ t ^ (t & 1) * TinyMT.C
+        
+        if t & 1:
+            t ^= TinyMT.C
+
+        return self._state[3] ^ t
     
     def _period_certification(self):
         if self._state[0] & 0x7fffffff == 0 and self._state[1] == 0 and self._state[2] == 0 and self._state[3] == 0:
             self._state = [ord('T'), ord('I'), ord('N'), ord('Y')]
     
     def __repr__(self):
-        return f"S[0]: {self._state[0]:08X}\nS[1]: {self._state[1]:08X}\nS[2]: {self._state[2]:08X}\nS[3]: {self._state[3]:08X}"
+        return f"S[0]: {self._state[0]:08X} | S[1]: {self._state[1]:08X} | S[2]: {self._state[2]:08X} | S[3]: {self._state[3]:08X}"
 
     @staticmethod
     def advance_state(state, n=1):
@@ -246,82 +250,3 @@ MAT_TINYMT_127_LSB_INV = (
     0x2E2756F3F4956E14A6D9F836C4801BEE, 0x71EDBF8AE3B8999937F6C426688320AF, 0x5032E556CE3A1423574DF53CA3C0B659, 0x760A09E2E9903530812CE1E83DFAFD80,
     0x1CB5DFD65A35F420803AD4D4F770758E, 0x24AD2AB1669E32352590BD62E9797E69, 0x79497EFBA9C2BF824CAAB126C6CF8E08, 0x3F706E013FA62F5B5D072B37391EFEE7,
     0x1AF88BBFA602279D50F9F92236659E89, 0x349F032662C1244FB87956B1361DE8E8, 0x56CF952B2BD04897FB378A9434CDBF5E)
-
-if __name__ == "__main__":
-    from random import randrange
-
-    '''seed = randrange(0, 1 << 32)
-    rng = TinyMT(seed)
-    it = 10_000
-
-    a = [rng.next() for _ in range(it)]
-    rng.next()
-
-    b = [rng.prev() for _ in range(it)]
-    b.reverse()
-
-    print(a == b)'''
-
-    '''s = randrange(0, 1 << 32)
-    a = randrange(0, 10000)
-    
-    tinymt = TinyMT(s)
-    tinymt.advance(a)
-    
-    r = TinyMT.recover_seed_from_state(tinymt.state)
-    
-    print(f"Recovered Seed: {r:08X} | Expected Seed: {s:08X} | Advances: {a}")'''
-
-    '''seed = randrange(0, 1 << 32)
-    rng = TinyMT(seed)
-
-    a = rng.state
-
-    rng.jump_ahead((1 << 127) - 17)
-    rng.advance(16)
-
-    b = rng.state
-
-    print(a == b)
-    '''        
-
-    '''for _ in range(10_000):
-        seed = randrange(0, 1 << 32)
-        a = randrange(0, 100)
-
-        rng = TinyMT(seed)
-        rng.advance(a)
-
-        bits = [rng.next() & 1 for _ in range(127)]
-
-        test = TinyMT.recover_seed_from_127_lsb(bits, max_advc=100)
-        
-        if seed != test:
-            print(hex(seed))'''
-
-    '''seed = randrange(0, 1 << 32)
-    a = 12_345_678
-
-    rng1 = TinyMT(seed)
-    rng1.advance(a)
-    print(rng1)
-
-    print()
-
-    rng2 = TinyMT(seed)
-    rng2.jump_ahead(a)
-    print(rng2)'''
-
-    '''seed = randrange(0, 1 << 32)
-    rng = TinyMT(seed)
-    rng.advance(randrange(0, 100))
-
-    state = TinyMT.advance_state(rng.state)
-    state[0] &= 0x7FFFFFFF
-
-    bits = [rng.next() & 1 for _ in range(127)]
-    
-    test = TinyMT.recover_state_from_127_lsb(bits)
-
-    for i in range(4):
-        print(f"{state[i]:08X} {test[i]:08X}")'''

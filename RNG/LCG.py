@@ -37,7 +37,7 @@ class LCRNG:
     def rand(self):
         return self.next() >> 16
 
-    def advance(self, n=1, rshift=0):              
+    def advance(self, n=1):              
         i = 0
         
         while n and i < self.BITS:
@@ -47,7 +47,7 @@ class LCRNG:
             n >>= 1
             i += 1
         
-        return self._state >> rshift
+        return self._state
            
     @classmethod
     def calc_distance(cls, s1, s2):
@@ -172,7 +172,7 @@ class BWRNG(LCRNG):
     
     def rand(self, lim=None):
         rnd = self.next() >> 32
-        return (rnd * lim) >> 32 if lim is not None else rnd >> 16   
+        return (rnd * lim) >> 32 if lim is not None else rnd >> 16
     
 class BWRNGR(BWRNG):
     MUL = (

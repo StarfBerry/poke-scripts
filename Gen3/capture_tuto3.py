@@ -8,6 +8,7 @@ from RNG import LCRNG
 def generate_shiny_tuto(seed, minAdvc, maxAdvc):
     print("| {:^10} | {:^5} | {:^5} | {:^8} |".format("Advances", "TID", "SID", "PID"))
     print("-" * 41)
+    
     fmt = "| {:^10} | {:05d} | {:05d} | {:08X} |"
     
     rng = LCRNG(seed)

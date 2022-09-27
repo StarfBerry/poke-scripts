@@ -64,14 +64,9 @@ def get_pokerus_slot_strain_4(seed, party):
     strain = xy >> 4
     return (slot+1, strain)
 
-if __name__ == "__main__":
-    dt = datetime(2022, 2, 22, 22, 22, 22)
-    hgss = False
-    party = 2
-    min_delay = 1200
-    max_delay = 2000
-    max_advc = 200
-
+def search_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc):
+    fmt = "Init Seed: {:08X} | Advances: {:3d} -> Occidentary: {:3d} | Slot: {} | Strain: {:2d} | Delay: {}"
+    
     max_occ = max_advc * 2
     base_seed = get_base_seed(dt)
     for delay in range(min_delay, max_delay, 2):
@@ -84,4 +79,14 @@ if __name__ == "__main__":
                 advc = occidentary_to_advances(LCRNGR(rng.state).advance(2), occ, hgss)
                 if advc is not None and advc <= max_advc:
                     slot, strain = get_pokerus_slot_strain_4(rng.state, party)
-                    print(f"Init Seed: {seed:08X} | Advances: {advc:{len(str(max_advc))}d} -> Occidentary: {occ:{len(str(max_advc))}d} | Slot: {slot} | Strain: {strain:2d} | Delay: {delay}")
+                    print(fmt.format(seed, advc, occ, slot, strain, delay))
+
+if __name__ == "__main__":
+    dt = datetime(2022, 2, 22, 22, 22, 22)
+    hgss = False
+    party = 2
+    min_delay = 800
+    max_delay = 2000
+    max_advc = 200
+
+    search_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc)

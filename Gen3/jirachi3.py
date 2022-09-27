@@ -103,8 +103,7 @@ def generate_shiny_wishmkr_jirachi():
 def generate_not_xored_shiny_channel_jirachi():
     c = 0
     for sid in range(0x10000):       
-        h = JirachiChannel.tid ^ sid
-        rnd = (sid << 16) | h
+        rnd = (sid << 16) | (JirachiChannel.tid ^ sid)
         
         for s in gcrng_recover_lower_16bits_pid(rnd):
             c += (GCRNG(s).advance(2) >> 16) >= 8 # cannot be shiny in this context

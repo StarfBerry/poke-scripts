@@ -52,9 +52,10 @@ class Horde5:
                     horde = Horde5.generate_horde(self.seed, advc, self.delay, sync, ha_slot, gender, psv)
                     if sync != gender: # sync or fixed gender give same advancement
                         sync, gender = "True/False", "False/True"
-                    print(f"\nSeed: {self.seed:08X} | Advances: {advc} | TSV: {psv:4d} | Sync: {str(sync):^10} | HA: {str(ha_slot):^4} | Fixed Gender: {gender}\n")
+                    print(f"Seed: {self.seed:08X} | Advances: {advc} | TSV: {psv:4d} | Sync: {str(sync):^10} | HA: {str(ha_slot):^4} | Fixed Gender: {gender}\n")
                     for pkm in horde:
                         print(pkm)
+                    print("\n############################################\n")
                     return # don't check for close full shiny hordes
         return None
 
@@ -88,7 +89,7 @@ if __name__ == "__main__":
     advances = 100_000
     delay = 174
 
-    test = Horde5(seeds[1], advances, delay)
+    test = Horde5(seeds[0], advances, delay)
     test.check()
 
 ''' 

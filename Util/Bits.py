@@ -11,7 +11,7 @@ def u64(x):
     return x & 0xffffffffffffffff
 
 # reverse x ^= (x << shift) & mask
-def reverse_lshift_xor_mask(x, shift=1, mask=0xffffffff):
+def reverse_xor_lshift_mask(x, shift=1, mask=0xffffffff):
     m = (1 << shift) - 1
     for i in range(shift, 32, shift):
         tmp = (x >> (i - shift)) & m
@@ -19,7 +19,7 @@ def reverse_lshift_xor_mask(x, shift=1, mask=0xffffffff):
     return x
 
 # reverse x ^= (x >> shift) & mask
-def reverse_rshift_xor_mask(x, shift=1, mask=0xffffffff):
+def reverse_xor_rshift_mask(x, shift=1, mask=0xffffffff):
     m = (1 << shift) - 1
     s = 32 - shift
     for i in range(shift, 32, shift):
@@ -27,14 +27,14 @@ def reverse_rshift_xor_mask(x, shift=1, mask=0xffffffff):
         x ^= (tmp & (mask << i)) >> i
     return x
 
-def reverse_lshift_xor_mask_64(x, shift=1, mask=0xffffffffffffffff):
+def reverse_xor_lshift_mask_64(x, shift=1, mask=0xffffffffffffffff):
     m = (1 << shift) - 1
     for i in range(shift, 64, shift):
         tmp = (x >> (i - shift)) & m
         x ^= (tmp & (mask >> i)) << i
     return x
 
-def reverse_rshift_xor_mask_64(x, shift=1, mask=0xffffffffffffffff):
+def reverse_xor_rshift_mask_64(x, shift=1, mask=0xffffffffffffffff):
     m = (1 << shift) - 1
     s = 64 - shift
     for i in range(shift, 64, shift):

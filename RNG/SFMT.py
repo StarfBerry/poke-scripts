@@ -1,8 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
-from Util.Bits import reverse_lshift_xor_mask
-from RNG import MT 
+from Util.Bits import reverse_xor_lshift_mask
 
 class SFMT:
     A = 0
@@ -116,30 +115,37 @@ class SFMT:
             state[a] ^= (state[c+1] << 24) & SFMT.MASK
             state[a] ^= (state[b] >> 11) & SFMT.MSK1
             state[a] ^= state[c] >> 8
-            state[a] = reverse_lshift_xor_mask(state[a], 8)
+            state[a] = reverse_xor_lshift_mask(state[a], 8)
 
             state[a+1] ^= (state[d+1] << 18) & SFMT.MASK
             state[a+1] ^= (state[c+2] << 24) & SFMT.MASK
             state[a+1] ^= (state[b+1] >> 11) & SFMT.MSK2
             state[a+1] ^= state[c+1] >> 8
             state[a+1] ^= state[a] >> 24
-            state[a+1] = reverse_lshift_xor_mask(state[a+1], 8)
+            state[a+1] = reverse_xor_lshift_mask(state[a+1], 8)
 
             state[a+2] ^= (state[d+2] << 18) & SFMT.MASK
             state[a+2] ^= (state[c+3] << 24) & SFMT.MASK
             state[a+2] ^= (state[b+2] >> 11) & SFMT.MSK3
             state[a+2] ^= state[c+2] >> 8
             state[a+2] ^= state[a+1] >> 24
-            state[a+2] = reverse_lshift_xor_mask(state[a+2], 8)
+            state[a+2] = reverse_xor_lshift_mask(state[a+2], 8)
 
             state[a+3] ^= (state[d+3] << 18) & SFMT.MASK
             state[a+3] ^= (state[b+3] >> 11) & SFMT.MSK4
             state[a+3] ^= state[c+3] >> 8
             state[a+3] ^= state[a+2] >> 24
-            state[a+3] = reverse_lshift_xor_mask(state[a+3], 8)
+            state[a+3] = reverse_xor_lshift_mask(state[a+3], 8)
 
             a, b, c, d = a-4, (b-4) % SFMT.N, (c-4) % SFMT.N, (d-4) % SFMT.N
-    
+       
+    @staticmethod
+    def reverse_init_loop(s, p):
+        for i in range(p, 0, -1):
+            s = (0x9638806D * (s - i)) & 0xffffffff
+            s ^= s >> 30
+        return s
+
     @classmethod
     def recover_seed_from_state(cls, state, min_advc=0, max_advc=10_000):
         n = SFMT.N // 2 if cls.__name__ == "SFMT" else SFMT.N
@@ -152,7 +158,7 @@ class SFMT:
         for _ in range(advc + 1):
             s4, s5 = state[4], state[5]
             SFMT.untwist(state)
-            seed = MT.reverse_init_loop(state[4], 4)
+            seed = SFMT.reverse_init_loop(state[4], 4)
             
             test = SFMT(seed)
             if test._state[4] == s4 and test._state[5] == s5:
@@ -178,51 +184,3 @@ class SFMT32(SFMT):
             q, self._index = divmod(self._index, SFMT.N)
             for _ in range(q): 
                 self._twist()
-
-
-if __name__ == "__main__":
-    from random import randrange
-
-    lim = 1 << 32
-   
-    '''for _ in range(1_000):
-        seed = randrange(0, lim)
-        advc = randrange(3_000, 4_000)
-        sfmt = SFMT(seed)
-        sfmt.advance(advc)
-        test = SFMT.recover_seed_from_state(sfmt.state, min_advc=3_000, max_advc=4_000)
-        
-        if test != seed:
-            print(hex(seed))'''
-    
-    '''rng = SFMT(0x12345678)
-    rng.advance(11_745)
-    print(hex(rng.next()))'''
-
-    '''seed = randrange(0, lim)
-    advc = randrange(700_000, 1_000_000)
-    advc -= advc % 624
-
-    rng = SFMT32(seed)
-    rng.advance(advc)
-
-    test = SFMT32.recover_seed_from_state(rng.state, max_advc=1_000_000)
-
-    print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {advc}")'''
-
-    seed = randrange(0, lim)
-    advc = randrange(300_000, 500_000)
-    advc -= advc % 312
-
-    rng = SFMT(seed)
-    rng.advance(advc)
-
-    state = [0] * 624
-    for i in range(0, 624, 2):
-        x = rng.next()
-        state[i] = x & 0xffffffff
-        state[i+1] = x >> 32
-
-    test = SFMT.recover_seed_from_state(state, max_advc=500_000)
-
-    print(f"Expected: {seed:08X} | Result: {test:08X} | Advances: {advc}")

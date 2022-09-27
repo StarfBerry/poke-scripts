@@ -28,27 +28,33 @@ def get_pokerus_slot_strain_3(seed, party, emerald=True):
     strain = xy >> 4
     return (slot+1, strain)
 
-if __name__ == "__main__":
-    from Util import ask_int, ask, u32
-    
-    game = ask("Emerald ? Y/N: ")
-    seed = u32(ask_int("Initial Seed: 0x", 16))
-    minAdvc = u32(ask_int("Min Advances: "))
-    maxAdvc = u32(ask_int("Max Advances: "))
-    party = ask_int("How many mon in your party ? ", condition=lambda val: 0 < val <= 6)
-    delay = u32(ask_int("Delay: "))
-    
+def search_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
     print("\n| {:9} | {} | {} |".format("Advances", "Party Slot", "Strain"))
     print("-" * 35)
-    fmt = "| {:<9} | {:^10} | {:^6} |"
+    
+    fmt = "| {:^9} | {:^10} | {:^6} |"
+    res = False
 
     rng = LCRNG(seed)
-    rng.advance(minAdvc + delay)
+    rng.advance(min_advc + delay)
 
-    for advc in range(minAdvc, maxAdvc+1):
+    for advc in range(min_advc, max_advc+1):
         test = rng.rand()
-        if test % 0x4000 == 0 and test:
-            slot, strain = get_pokerus_slot_strain_3(rng.state, party, game)
+        if test % 0x4000 == 0 and test != 0:
+            slot, strain = get_pokerus_slot_strain_3(rng.state, party, emerald)
             print(fmt.format(advc, slot, strain))
-    
+            res = True
+
     print("-" * 35)
+
+if __name__ == "__main__":
+    from Util import ask_int, ask, u16, u32
+    
+    seed = u16(ask_int("Initial Seed: 0x", 16))
+    emerald = ask("Emerald ? Y/N: ")
+    min_advc = u32(ask_int("Min Advances: "))
+    max_advc = u32(ask_int("Max Advances: "))
+    party = ask_int("How many mon in your party ? ", condition=lambda val: 0 < val <= 6)
+    delay = u32(ask_int("Delay: "))
+
+    search_pkrs_3(seed, emerald, min_advc, max_advc, party, delay)

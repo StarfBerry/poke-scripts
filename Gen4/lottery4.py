@@ -19,9 +19,18 @@ def recover_lottery_seed_4(t1, t2, t3, hgss=True):
             return seed
     return -1
 
-def generate_winning_tickets(seed, ids, date_start, max_advc, hgss=True):
+def generate_winning_tickets(date_start, t1, t2, t3, ids, max_advc, hgss=True):
+    seed = recover_lottery_seed_4(t1, t2, t3, hgss)
+    if seed == -1:
+        print("The lottery prng state has not been recovered.")
+        return
+    
+    print(f"Recovered Seed: {seed:08X}\n")
+
+    res = False
     lotto_advc = LCRNG if hgss else MRNG
     day = ARNG(seed)
+    
     for advc in range(1, max_advc):
         ticket = lotto_advc(day.next()).rand()
         if ticket in ids:
@@ -31,9 +40,13 @@ def generate_winning_tickets(seed, ids, date_start, max_advc, hgss=True):
                 cycle += 1
                 date -= timedelta(days=DAYS)
             print(f"Advances: {advc:7d} | Ticket: {ticket:05d} | PRNG State: {day.state:08X} | Cycle: {cycle} | Date: {date}")
+            res = True
+    
+    if not res:
+        print("No results :(")
 
 if __name__ == "__main__":
-    date = date(2022, 6, 29) # date from t1
+    date = date(2022, 6, 29) # date calibration
     hgss = False
     t1 = 57099
     t2 = 33596
@@ -42,9 +55,4 @@ if __name__ == "__main__":
     target_ids = [5, 10101]
     max_advc = 100_000
     
-    if seed == -1:
-        print("The lottery prng state has not been recovered.")
-        exit()
-    else:
-        print(f"Recovered Seed: {seed:08X}\n")
-        generate_winning_tickets(seed, target_ids, date, max_advc, hgss)
+    generate_winning_tickets(date, t1, t2, t3, target_ids, max_advc, hgss)

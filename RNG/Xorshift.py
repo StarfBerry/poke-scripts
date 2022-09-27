@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
-from Util.Bits import reverse_lshift_xor_mask, reverse_rshift_xor_mask
+from Util.Bits import reverse_xor_lshift_mask, reverse_xor_rshift_mask
 
 class Xorshift:
     def __init__(self, s0, s1, state=None):
@@ -36,8 +36,8 @@ class Xorshift:
     def prev(self):
         t = self._state[3]
         t ^= self._state[2] ^ (self._state[2] >> 19)
-        t = reverse_rshift_xor_mask(t, 8)
-        t = reverse_lshift_xor_mask(t, 11)
+        t = reverse_xor_rshift_mask(t, 8)
+        t = reverse_xor_lshift_mask(t, 11)
 
         self._state[3] = self._state[2]
         self._state[2] = self._state[1]
@@ -139,38 +139,3 @@ XORSHIFT_JUMP_TABLE = (
     0x68C3AFDD3BA4C42D850702CEECAD8500, 0xF36FDE34B48FBBA426E4433AA692C9D5, 0x539FDC541BB3FC038BC1482FF3783BCC, 0xBB00FA4EBEC0F6B538B5FFCC66884AE6,
     0xEBCF83D233A66F96A46944F11F2B2FC8, 0xF7D46C3248FC046192A9DB106CD5D704, 0x18C8C81B338708F78DA3E03E43B215DD, 0xBA28BA9CF175EA1C00E3E1A37AC657F6,
     0x3DE53FA1E9B03CAFD0A5F82F1E00DF0B, 0xE112AED18898D49A7B4C0943015B33DF, 0xD9E63EC817BF84E121702C522010C0E0, 0x4D59E5D1E22DB1BFA86B1B09FE3FDBF4)
-
-if __name__ == "__main__":
-    from random import randrange
-
-    lim = 1 << 64
-
-    '''s0 = randrange(0, lim)
-    s1 = randrange(0, lim)
-    it = 10_000
-
-    rng = Xorshift(s0, s1)
-
-    a = [rng.next() for _ in range(it)]
-    rng.next()
-    b = [rng.prev() for _ in range(it)]
-    b.reverse()
-
-    print(a == b)'''
-
-    '''s0 = randrange(0, lim)
-    s1 = randrange(0, lim)
-    a = 12_345_678
-
-    rng1 = Xorshift(s0, s1)
-    rng1.advance(a)
-    print(hex(rng1.state))
-
-    rng2 = Xorshift(s0, s1)
-    rng2.jump_ahead(a)
-    print(hex(rng2.state))'''
-
-    test = Xorshift.recover_state_from_4_32bit_outputs(0xdeadbeef, 0x12345678, 0x88888888, 0xaaaaaaaa)
-    rng = Xorshift(test >> 64, test % 2**64)
-    for i in range(4):
-        print(hex(rng.next()))

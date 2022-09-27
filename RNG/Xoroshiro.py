@@ -79,13 +79,13 @@ class Xoroshiro:
         return Xoroshiro(self.s0, self.s1)
 
     @staticmethod
-    def advance_state(state, n):
+    def advance_state(state, n=1):
         rng = Xoroshiro(state >> 64, state & Xoroshiro.MASK)
         rng.advance(n)
         return rng.state
     
     @staticmethod
-    def backward_state(state, n):
+    def backward_state(state, n=1):
         rng = Xoroshiro(state >> 64, state & Xoroshiro.MASK)
         rng.back(n)
         return rng.state
@@ -200,51 +200,3 @@ MAT_XOROSHIRO_128_LSB_INV = (
     0x130E4DF56A64A5E4B2D2279C90E3AD06, 0x255EC7493C45CDD4C3AB6CBAA093A463, 0x19CD5E01761EA0D96028F3AE952AEFEC, 0xAFF94F7E40231EA77A2FE69311E36BD1,
     0xABEF036496EEA7314F75DDA99E49624F, 0x2E4A66E14048E56B0CF73B40F1B30C9F, 0x03B0A82AC1A47CA30AC293E74D7BFDFA, 0x7F2185AB1A22152B0BB8D3E54E925156,
     0x80B73A4FEB7B1970E3C26B0226B98FA8, 0xEB989D7A5A9B4F48989DBAF82645BC26, 0x023CEFFFCE32903106196F241591CA2A, 0xEB4FA797C2A8EFAEB31D5FCA77F784CA)
-
-if __name__ == "__main__":
-    from random import randrange
-    from time import time
-    
-    lim = 1 << 64
-
-    '''rng = Xoroshiro(0)
-    it = 10_000
-
-    a = [rng.next() for _ in range(it)]
-    b = [rng.prev() for _ in range(it)]
-    b.reverse()
-
-    print(a == b)'''
-    
-    '''seed = randrange(0, 1 << 64)
-    a = 12_345_678
-
-    rng1 = Xoroshiro(seed)
-    rng1.advance(a)
-    print(hex(rng1.state))
-
-    rng2 = Xoroshiro(seed)
-    rng2.jump_ahead(a)
-    print(hex(rng2.state))'''
-
-    '''seed = randrange(0, 1 << 64)
-    rng = Xoroshiro(seed)
-    rng.advance(5784)
-
-    bits = [rng.next() & 1 for _ in range(128)]
-    test = Xoroshiro.recover_swsh_seed_from_128_lsb(bits)
-
-    print(hex(seed), hex(test))'''
-
-    seed = randrange(0, lim)
-    rng = Xoroshiro(seed)
-    rng.advance(42)
-
-    state = rng.state
-    bits = [rng.next() & 1 for _ in range(128)]
-
-    test = Xoroshiro.recover_state_from_128_lsb(bits)
-
-    print(f"Expected: {state:032X}")
-    print(f"Result:   {test:032X}")
-    print(state == test)

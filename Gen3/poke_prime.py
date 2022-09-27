@@ -10,8 +10,8 @@ is_prime = primality.isprime
 
 def pid_seed_to_ivs(pid_seed, method=1):
     rng = LCRNG(pid_seed)
-    iv1 = rng.advance(2 + (method == 2), 16)
-    iv2 = rng.advance(1 + (method == 4), 16)
+    iv1 = rng.advance(2 + (method == 2)) >> 16
+    iv2 = rng.advance(1 + (method == 4)) >> 16
     return get_ivs(iv1, iv2)
 
 def prime_ivs(ivs):
@@ -65,4 +65,5 @@ if __name__ == "__main__":
     PID: 3DBBD7DB | IVs: 17.23.29.29.05.03 | Nature: Quiet   17 | HP: Dark 36 | Method: 1 | Seed: A958FF15
     PID: D5353DB5 | IVs: 13.13.29.17.31.31 | Nature: Jolly   13 | HP: Dark 55 | Method: 4 | Seed: DAE50EA9
     '''
+    
     prime_pid() # 3DB52B3D, Hasty, 61

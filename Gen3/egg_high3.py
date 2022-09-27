@@ -20,10 +20,8 @@ class EggMethods(Enum):
 def generate_egg_ivs(seed, method):
     rng = LCRNG(seed)
     
-    rng.advance(method[0])
-    iv1 = rng.rand()
-    rng.advance(method[1])
-    iv2 = rng.rand()
+    iv1 = rng.advance(1 + method[0]) >> 16
+    iv2 = rng.advance(1 + method[1]) >> 16
     ivs = get_ivs(iv1, iv2)
 
     rng.advance(method[2])
