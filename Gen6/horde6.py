@@ -23,10 +23,9 @@ class Horde5:
     
         mt = MT(self.seed)
         mt.advance(62+delay)
-        self.psvs = [get_psv(mt.next(), 4) for _ in range(self.advances+52)]
+        self.psvs = [get_psv(mt.next(), 4) for _ in range(advc+52)]
 
     def check(self):
-        self.results = []
         for advc in range(self.advances):
             self.psv = self.psvs[advc]
             for i in range(8, 14): # possible jumps, assuming the user has shiny charm
@@ -41,7 +40,7 @@ class Horde5:
         
     def check_full_shiny_horde(self, advc, shiny=2, ha=0, ha_slot=None):
         if ha and ha_slot is None: 
-            ha_slot = shiny-1
+            ha_slot = shiny - 1
         if shiny == 5: 
             return (self.advc, self.psv, self.sync != 0, self.gender != 0, ha_slot)
         for i in range(self.min_jump-(not ha), self.max_jump):
@@ -78,8 +77,7 @@ class Horde5:
             nature = mt.rand(25) if not sync else -1
             gender = mt.rand(252) if not gender_restriction else "Fixed"
             
-            pkmn = Pokemon(gen=6, ec=ec, pid=pid, ivs=ivs, ability=ability, nature=nature, gender=gender)
-            horde.append(pkmn)
+            horde.append(Pokemon(gen=6, ec=ec, pid=pid, ivs=ivs, ability=ability, nature=nature, gender=gender))
         
         return horde
 

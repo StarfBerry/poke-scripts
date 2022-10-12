@@ -6,9 +6,9 @@ from Util.Bits import bits_to_int
 class Xoroshiro:
     MASK = 0xFFFFFFFFFFFFFFFF
 
-    def __init__(self, s0, s1=0x82A2B175229D6A5B):
-       self.s0 = s0
-       self.s1 = s1
+    def __init__(self, s0, s1=0x82A2B175229D6A5B):       
+        self.s0 = s0
+        self.s1 = s1
     
     @property
     def state(self):
@@ -20,13 +20,13 @@ class Xoroshiro:
     
     def next(self):
         s0, s1 = self.s0, self.s1
-        out = (s0 + s1) & Xoroshiro.MASK
+        res = (s0 + s1) & Xoroshiro.MASK
         s1 ^= s0
         
         self.s0 = Xoroshiro.rotl(s0, 24) ^ s1 ^ (s1 << 16) & Xoroshiro.MASK
         self.s1 = Xoroshiro.rotl(s1, 37)
         
-        return out
+        return res
     
     def prev(self):
         s1 = Xoroshiro.rotl(self.s1, 27)
@@ -39,6 +39,13 @@ class Xoroshiro:
         
         return (s0 + s1) & Xoroshiro.MASK
     
+    def rand(self, n=0xffffffff):
+        mask = Xoroshiro.get_mask(n)
+        rnd = self.next() & mask
+        while rnd >= n:
+            rnd = self.next() & mask
+        return rnd
+
     def jump_ahead(self, n):
         i = 0
         
@@ -67,29 +74,7 @@ class Xoroshiro:
     def back(self, n=1):
         for _ in range(n):
             self.prev()
-
-    def rand(self, n=0xffffffff):
-        mask = Xoroshiro.get_mask(n)
-        rnd = self.next() & mask
-        while rnd >= n:
-            rnd = self.next() & mask
-        return rnd
-
-    def clone(self):
-        return Xoroshiro(self.s0, self.s1)
-
-    @staticmethod
-    def advance_state(state, n=1):
-        rng = Xoroshiro(state >> 64, state & Xoroshiro.MASK)
-        rng.advance(n)
-        return rng.state
     
-    @staticmethod
-    def backward_state(state, n=1):
-        rng = Xoroshiro(state >> 64, state & Xoroshiro.MASK)
-        rng.back(n)
-        return rng.state
-
     @staticmethod
     def rotl(x, k):
         return ((x << k) | (x >> (64 - k))) & Xoroshiro.MASK
@@ -97,28 +82,14 @@ class Xoroshiro:
     @staticmethod
     def get_mask(x):
         x -= 1
-        for i in range(6):
-            x |= x >> (1 << i)
+        x |= x >> 1
+        x |= x >> 2
+        x |= x >> 4
+        x |= x >> 8
+        x |= x >> 16
         return x
-
-    @staticmethod
-    def recover_swsh_seed_from_state(s0, s1, min_advc=0, max_advc=10_000):
-        rng = Xoroshiro(s0, s1)
-        rng.back(min_advc)
         
-        advc = max_advc - min_advc
-        for _ in range(advc + 1):
-            if rng.s1 == 0x82A2B175229D6A5B:
-                return rng.s0
-            
-            rng.prev()
-        
-        return -1
-    
-    @staticmethod
-    def calc_swsh_raid_seed_distance(s1, s2):
-        return (0xC855099EEB5DB5D3 * (s2 - s1)) & Xoroshiro.MASK
-    
+    # Recover the internal state of Xoroshiro using the lsb of 128 consecutive outputs.
     @staticmethod
     def recover_state_from_128_lsb(bits):
         if len(bits) != 128:
@@ -127,11 +98,51 @@ class Xoroshiro:
         vec = bits_to_int(bits)
 
         return sum(((vec & MAT_XOROSHIRO_128_LSB_INV[i]).bit_count() & 1) << i for i in range(128))
+
+class XoroshiroBDSP(Xoroshiro):
+    def __init__(self, seed=0):
+        self.s0 = XoroshiroBDSP.splitmix(seed, 0x9E3779B97F4A7C15)
+        self.s1 = XoroshiroBDSP.splitmix(seed, 0x3C6EF372FE94F82A)
+                
+    def next(self):
+        return super().next() >> 32
+    
+    def prev(self):
+        return super().prev() >> 32
+
+    def rand(self, lim):
+        return self.next() % lim
+
+    @staticmethod
+    def splitmix(seed, state):
+        seed = (seed + state) & Xoroshiro.MASK
+        seed = (0xBF58476D1CE4E5B9 * (seed ^ (seed >> 30))) & Xoroshiro.MASK
+        seed = (0x94D049BB133111EB * (seed ^ (seed >> 27))) & Xoroshiro.MASK
+        return seed ^ (seed >> 31)
     
     @staticmethod
-    def recover_swsh_seed_from_128_lsb(bits, min_advc=0, max_advc=10_000):
-        state = Xoroshiro.recover_state_from_128_lsb(bits)
-        return Xoroshiro.recover_swsh_seed_from_state(state >> 64, state & Xoroshiro.MASK, min_advc, max_advc)
+    def recover_state_from_128_lsb(bits):
+        raise AttributeError("'recover_state_from_128_lsb' method is not available for 'XoroshiroBDSP'. Try with the 'Xoroshiro' class.")
+
+def recover_swsh_seed_from_state(s0, s1, min_advc=0, max_advc=10_000):
+    rng = Xoroshiro(s0, s1)
+    rng.back(min_advc)
+    advc = max_advc - min_advc
+    
+    for _ in range(advc + 1):
+        if rng.s1 == 0x82A2B175229D6A5B:
+            return rng.s0
+        
+        rng.prev()
+    
+    return -1
+
+def calc_swsh_raid_seed_distance(s1, s2):
+    return (0xC855099EEB5DB5D3 * (s2 - s1)) & Xoroshiro.MASK
+
+def recover_swsh_seed_from_128_lsb(bits, min_advc=0, max_advc=10_000):
+    state = Xoroshiro.recover_state_from_128_lsb(bits)
+    return Xoroshiro.recover_swsh_seed_from_state(state >> 64, state & Xoroshiro.MASK, min_advc, max_advc)
 
 XOROSHIRO_JUMP_TABLE = (
     0x00000000000000000000000000000002, 0x00000000000000000000000000000004, 0x00000000000000000000000000000010, 0x00000000000000000000000000000100, 
@@ -200,3 +211,39 @@ MAT_XOROSHIRO_128_LSB_INV = (
     0x130E4DF56A64A5E4B2D2279C90E3AD06, 0x255EC7493C45CDD4C3AB6CBAA093A463, 0x19CD5E01761EA0D96028F3AE952AEFEC, 0xAFF94F7E40231EA77A2FE69311E36BD1,
     0xABEF036496EEA7314F75DDA99E49624F, 0x2E4A66E14048E56B0CF73B40F1B30C9F, 0x03B0A82AC1A47CA30AC293E74D7BFDFA, 0x7F2185AB1A22152B0BB8D3E54E925156,
     0x80B73A4FEB7B1970E3C26B0226B98FA8, 0xEB989D7A5A9B4F48989DBAF82645BC26, 0x023CEFFFCE32903106196F241591CA2A, 0xEB4FA797C2A8EFAEB31D5FCA77F784CA)
+
+if __name__ == "__main__":
+    from random import randrange
+
+    lim = 1 << 64
+
+    '''rng = XoroshiroBDSP(0x12345678)
+    for i in range(10):
+        print(i, hex(rng.next()))'''
+    
+    #x = XoroshiroBDSP.recover_state_from_128_lsb(5)
+
+    '''seed = randrange(0, lim)
+    advc = 12_345_678
+
+    rng1 = Xoroshiro(seed)
+    rng1.advance(advc)
+    print(hex(rng1.state))
+
+    rng2 = Xoroshiro(seed)
+    rng2.jump_ahead(advc)
+    print(hex(rng2.state))'''
+    
+    for _ in range(10_000):
+        seed = randrange(0, lim)
+        
+        rng = Xoroshiro(seed)
+        rng.advance(42)
+        
+        state = rng.state
+
+        bits = [rng.next() & 1 for _ in range(128)]
+
+        test = Xoroshiro.recover_state_from_128_lsb(bits)
+        
+        assert test == state, f"expected: {state:032X} | output: {test:032X}"

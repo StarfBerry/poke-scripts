@@ -10,25 +10,32 @@ from RNG import LCRNG
 
 def get_pokerus_slot_strain_3(seed, party, emerald=True):
     rng = LCRNG(seed)
+    
     slot = party
     while slot >= party:
-        slot = rng.rand() % 6
+        slot = rng.rand(6)
+    
     if emerald:
         check = lambda xy: (xy & 7) == 0
     else:
         check = lambda xy: xy == 0 # Strain 0 only possible in RS
+
     xy = 0
     while check(xy):
         xy = rng.rand()
+    
     if xy & 0xf0:
         xy &= 7
+    
     xy |= (xy << 4)
     xy &= 0xf3
     xy += 1
+    
     strain = xy >> 4
+    
     return (slot+1, strain)
 
-def search_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
+def generate_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
     print("\n| {:9} | {} | {} |".format("Advances", "Party Slot", "Strain"))
     print("-" * 35)
     
@@ -57,4 +64,4 @@ if __name__ == "__main__":
     party = ask_int("How many mon in your party ? ", condition=lambda val: 0 < val <= 6)
     delay = u32(ask_int("Delay: "))
 
-    search_pkrs_3(seed, emerald, min_advc, max_advc, party, delay)
+    generate_pkrs_3(seed, emerald, min_advc, max_advc, party, delay)

@@ -153,8 +153,4 @@ class PK6(ByteStruct):
         return [curr_hp, max_hp, atk, dfs, spa, spd, spe]
 
 class PK7(PK6):
-    def __init__(self, data):
-        super().__init__(data)
-
-class PB7(PK6):
     pass

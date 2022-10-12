@@ -27,6 +27,7 @@ if __name__ == "__main__":
     max_advc = u16(ask_int("Max Advances: "))
     max_delay = ask_int("Max Delay [0-65536): ", condition=lambda val: 0 <= val < 65536)
     year = ask_int("Year [2000-2099]: ", condition=valid_year)
+    
     print()
 
     get_seed_4(target_seed, max_advc, max_delay, year)

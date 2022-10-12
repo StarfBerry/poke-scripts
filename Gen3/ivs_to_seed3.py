@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
-from RNG import LCRNG, LCRNGR, GCRNG, GCRNGR, lcrng_recover_lower_16bits_ivs, lcrng_recover_lower_16bits_ivs_2, gcrng_recover_lower_16bits_ivs
+from RNG import LCRNG, LCRNGR, GCRNG, GCRNGR, lcrng_recover_ivs_seeds, lcrng_recover_ivs_seeds_2, gcrng_recover_ivs_seeds
 from jirachi3 import JirachiChannel
 from Util import Pokemon
 from enum import Enum
@@ -11,55 +11,59 @@ class Method(Enum):
     Method2 = (0, 1, 0) # [PIDL] [PIDH] [Blank] [IV1] [IV2]
     Method3 = (1, 0, 0) # [PIDL] [Blank] [PIDH] [IV1] [IV2]
     Method4 = (0, 0, 1) # [PIDL] [PIDH] [IV1] [Blank] [IV2]
-    Method1Reverse = (0, 0, 0, True) # [PIDH] [PIDL] [IV1] [IV2]
+    Method1Reverse = (0, 0, 0, -1) # [PIDH] [PIDL] [IV1] [IV2]
 
-    Gamecube = 5
-    Channel  = 6
+    Gamecube = 6 # [IV1] [IV2] [Ability] [PIDH] [PIDL]
+    Channel  = 7 # [PIDH] [PIDL] [Blank]*3 [HP] [Atk] [Def] [Spe] [Spa] [Spd]
 
-def ivs_to_pkm(hp, atk, dfs, spa, spd, spe, method=Method.Method1):
+def ivs_to_pkm_3(hp, atk, dfs, spa, spd, spe, method=Method.Method1):
+    ivs = [hp, atk, dfs, spa, spd, spe]
+    
     if method != Method.Method4:
-        seeds = lcrng_recover_lower_16bits_ivs(hp, atk, dfs, spa, spd, spe)
+        seeds = lcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe)
     else:
-        seeds = lcrng_recover_lower_16bits_ivs_2(hp, atk, dfs, spa, spd, spe)
+        seeds = lcrng_recover_ivs_seeds_2(hp, atk, dfs, spa, spd, spe)
+    
+    a, b = method.value[0], method.value[1]
     
     res = []
-    for seed in seeds:
-        iv2 = LCRNG(seed).advance(1 + method.value[2]) >> 16
-        iv1 = seed >> 16
+    for seed in seeds:        
+        origin_seed = LCRNGR(seed).advance(2 + a + b)
+        rng = LCRNG(origin_seed)
+
+        pidl = rng.rand()
+        pidh = rng.advance(1 + a) >> 16
         
-        rng = LCRNGR(seed)
-        pidh = rng.advance(1 + method.value[1]) >> 16
-        pidl = rng.advance(1 + method.value[0]) >> 16
-        
-        if method == Method.Method1Reverse: 
+        if method == Method.Method1Reverse:
             pidh, pidl = pidl, pidh
         
-        origin_seed = rng.next()
-        
-        res.append(Pokemon(pidh=pidh, pidl=pidl, iv1=iv1, iv2=iv2, seed=origin_seed))
+        res.append(Pokemon(pidh=pidh, pidl=pidl, ivs=ivs, seed=origin_seed))
     
     return res
 
 def gc_ivs_to_pkm(hp, atk, dfs, spa, spd, spe):
+    ivs = [hp, atk, dfs, spa, spd, spe]
+    
     res = []
-    for seed in gcrng_recover_lower_16bits_ivs(hp, atk, dfs, spa, spd, spe):
+    for seed in gcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe):
         rng = GCRNG(seed)
-        iv1 = seed >> 16
-        iv2 = rng.rand()
-        ability = rng.rand() & 1
+        
+        ability = (rng.advance(3) >> 16) & 1        
+        
         pidh = rng.rand()
         pidl = rng.rand()
-        origin_seed = GCRNGR(seed).next()
-        res.append(Pokemon(gc=True, pidh=pidh, pidl=pidl, iv1=iv1, iv2=iv2, ability=ability, seed=origin_seed))
+ 
+        res.append(Pokemon(pidh=pidh, pidl=pidl, ivs=ivs, ability=ability, seed=seed))
+    
     return res
 
-def search_pkm(min_ivs, max_ivs, target_natures, method):
+def search_pkm_3(min_ivs, max_ivs, target_natures, method):
     if method == Method.Gamecube:
         get_pkm = lambda hp, atk, dfs, spa, spd, spe: gc_ivs_to_pkm(hp, atk, dfs, spa, spd, spe)
     elif method == Method.Channel:
         get_pkm = lambda hp, atk, dfs, spa, spd, spe: JirachiChannel.ivs_to_jirachi(hp, atk, dfs, spa, spd, spe)
     else:
-        get_pkm = lambda hp, atk, dfs, spa, spd, spe: ivs_to_pkm(hp, atk, dfs, spa, spd, spe, method)
+        get_pkm = lambda hp, atk, dfs, spa, spd, spe: ivs_to_pkm_3(hp, atk, dfs, spa, spd, spe, method)
     
     res = False
     for hp in range(min_ivs[0], max_ivs[0]+1):
@@ -74,7 +78,7 @@ def search_pkm(min_ivs, max_ivs, target_natures, method):
                                     res = True
     
     if not res:
-        print("no resuts :(")
+        print("no results :(")
     
 if __name__ == "__main__":
     min_ivs = (31, 31, 31, 0, 31, 31)
@@ -82,4 +86,4 @@ if __name__ == "__main__":
     target_natures = ("Jolly", "Adamant")
     method = Method.Method1
 
-    search_pkm(min_ivs, max_ivs, target_natures, method)
+    search_pkm_3(min_ivs, max_ivs, target_natures, method)

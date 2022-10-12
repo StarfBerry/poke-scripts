@@ -40,5 +40,7 @@ if __name__ == "__main__":
     seed = u16(ask_int("Initial Seed: 0x", 16))
     minAdvc = u32(ask_int("Min Advances: "))
     maxAdvc = u32(ask_int("Max Advances: ", condition=lambda val: u32(val+1) > minAdvc) + 1)
+    
     print()
+    
     generate_shiny_tuto(seed, minAdvc, maxAdvc)

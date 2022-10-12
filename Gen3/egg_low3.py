@@ -5,14 +5,14 @@ sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG
 
-def search_16bit_low(seed, target_low, max_advc, compatibility, delay):
+def generate_16bit_low_pid(seed, target_low, max_advc, compatibility, delay):
     rng = LCRNG(seed)
     rng.advance(delay)
     res = False
 
     for advc in range(1, max_advc):
         prev = rng.state
-        low = (rng.rand() % 0xfffe) + 1
+        low = rng.rand(0xfffe) + 1
         if low == target_low:
             test = ((prev >> 16) * 100) // 0xffff
             if test < compatibility:
@@ -32,4 +32,4 @@ if __name__ == "__main__":
     delay = u8(ask_int("Delay: "))
     print()
 
-    search_16bit_low(seed, target_low, max_advc, compatibility, delay)
+    generate_16bit_low_pid(seed, target_low, max_advc, compatibility, delay)

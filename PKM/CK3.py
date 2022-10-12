@@ -2,7 +2,7 @@ import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
 from Util import ByteStruct, SIZE_3CSTORED, get_hp_type, get_hp_damage
-from PKM import species_id_to_dex_number, species_to_gender_ratio, species_to_abilities
+from PKM.PK3 import species_id_to_dex_number, species_to_gender_ratio, species_to_abilities
 
 class CK3(ByteStruct):
     def __init__(self, data):

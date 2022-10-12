@@ -1,8 +1,3 @@
-def reverse_lcg(mul, add, b=32):
-    rmul = pow(mul, -1, m := 1 << b)
-    radd = (-rmul * add) % m
-    return (rmul, radd)
-
 class LCRNG:   
     MASK = 0xFFFFFFFF
     BITS = 32
@@ -34,8 +29,9 @@ class LCRNG:
         self._state = (self._state * self.MUL[0] + self.ADD[0]) & self.MASK
         return self._state
 
-    def rand(self):
-        return self.next() >> 16
+    def rand(self, lim=0):
+        rnd = self.next() >> 16
+        return rnd % lim if lim else rnd
 
     def advance(self, n=1):              
         i = 0
@@ -85,7 +81,7 @@ class MRNG(LCRNG):
         0x33000000, 0x66000000, 0xCC000000, 0x98000000, 0x30000000, 0x60000000, 0xC0000000, 0x80000000)
     
     def rand15(self):
-        return self.rand() & 0x7fff
+        return (self.next() >> 16) & 0x7fff
 
 class MRNGR(MRNG, LCRNGR):   
     ADD = (
@@ -170,9 +166,9 @@ class BWRNG(LCRNG):
         0x8D8D000000000000, 0x1B1A000000000000, 0x3634000000000000, 0x6C68000000000000, 0xD8D0000000000000, 0xB1A0000000000000, 0x6340000000000000, 0xC680000000000000,
         0x8D00000000000000, 0x1A00000000000000, 0x3400000000000000, 0x6800000000000000, 0xD000000000000000, 0xA000000000000000, 0x4000000000000000, 0x8000000000000000)
     
-    def rand(self, lim=None):
+    def rand(self, lim=0):
         rnd = self.next() >> 32
-        return (rnd * lim) >> 32 if lim is not None else rnd >> 16
+        return (rnd * lim) >> 32 if lim else rnd >> 16
     
 class BWRNGR(BWRNG):
     MUL = (

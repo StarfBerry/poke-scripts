@@ -33,6 +33,9 @@ class TinyMT:
         self._prev_state()
         return self._temper()
 
+    def rand(self, lim):
+        return (self.next() * lim) >> 32
+
     def jump_ahead(self, n):
         i = 0
         
@@ -63,12 +66,6 @@ class TinyMT:
     def back(self, n=1):
         for _ in range(n):
             self._prev_state()
-    
-    def rand(self, lim):
-        return (self.next() * lim) >> 32
-    
-    def prev_rand(self, lim):
-        return (self.prev() * lim) >> 32
     
     def _next_state(self):
         x = (self._state[0] & 0x7fffffff) ^ self._state[1] ^ self._state[2]
@@ -166,6 +163,7 @@ class TinyMT:
         
         return -1
     
+    # Recover the internal state of TinyMT using the lsb of 127 consecutive outputs.
     @staticmethod
     def recover_state_from_127_lsb(bits):
         if len(bits) != 127:
@@ -174,7 +172,7 @@ class TinyMT:
         vec = bits_to_int(bits)
         
         state_bits = [(vec & MAT_TINYMT_127_LSB_INV[i]).bit_count() & 1 for i in range(127)]        
-        state_bits.insert(31, 0)
+        state_bits.insert(31, 0) # don't need to recover the msb of state[0] since the outputs will be the same in both case
         
         return bits_to_ints(state_bits)
 
@@ -250,3 +248,67 @@ MAT_TINYMT_127_LSB_INV = (
     0x2E2756F3F4956E14A6D9F836C4801BEE, 0x71EDBF8AE3B8999937F6C426688320AF, 0x5032E556CE3A1423574DF53CA3C0B659, 0x760A09E2E9903530812CE1E83DFAFD80,
     0x1CB5DFD65A35F420803AD4D4F770758E, 0x24AD2AB1669E32352590BD62E9797E69, 0x79497EFBA9C2BF824CAAB126C6CF8E08, 0x3F706E013FA62F5B5D072B37391EFEE7,
     0x1AF88BBFA602279D50F9F92236659E89, 0x349F032662C1244FB87956B1361DE8E8, 0x56CF952B2BD04897FB378A9434CDBF5E)
+
+if __name__ == "__main__":
+    from random import randrange
+    
+    '''rng = TinyMT(0x12345678)
+    for i in range(10):
+        print(i, hex(rng.next()))'''
+
+    lim = 1 << 32
+
+    '''rng = TinyMT(randrange(0, lim))
+    a = [rng.next() for _ in range(10_000)]
+    rng.advance(1)
+    b = [rng.prev() for _ in range(10_000)]
+    b.reverse()
+
+    assert a == b'''
+
+    '''a = 12_345_678
+    seed = randrange(0, lim)
+    
+    rng1 = TinyMT(seed)
+    rng1.advance(a)
+    print(rng1)
+
+    rng2 = TinyMT(seed)
+    rng2.jump_ahead(a)
+    print(rng2)'''
+
+    '''for _ in range(1_000):
+        seed = randrange(0, lim)
+        rng = TinyMT(seed)
+        rng.advance(randrange(0, 10_000))
+
+        test = TinyMT.recover_seed_from_state(rng.state)
+        
+        assert test == seed, f"{seed:08X} {test:08X}"'''
+
+    '''for _ in range(10_000):
+        seed = randrange(0, lim)
+        
+        rng = TinyMT(seed)
+        rng.advance(42)
+
+        state = TinyMT.advance_state(rng.state)
+        state[0] &= 0x7fffffff
+
+        bits = [rng.next() & 1 for _ in range(127)]
+    
+        test = TinyMT.recover_state_from_127_lsb(bits)
+
+        assert test == state, hex(seed)'''
+
+    for _ in range(10_000):
+        seed = randrange(0, lim)
+        
+        rng = TinyMT(seed)
+        rng.advance(42)
+
+        bits = [rng.next() & 1 for _ in range(127)]
+        
+        test = TinyMT.recover_seed_from_127_lsb(bits)
+        
+        assert test == seed, f"expected: {seed:08X} | output: {test:08X}"

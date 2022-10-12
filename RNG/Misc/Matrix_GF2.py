@@ -148,10 +148,10 @@ def matrix_tinymt():
 
     return state
 
-# TinyMT output function is not F2-linear but at least with this we can compute the right lsb.
+# TinyMT output function is not F2-linear but at least with this we can compute the lsb.
 def matrix_tinymt_temper():
     state = matrix_identity(128)
-    s0, s1, s2, s3 = (state[i:i+32] for i in range(0, 128, 32))
+    s0, s2, s3 = state[0:32], state[64:96], state[96:128]
 
     t = s0 ^ matrix_rshift(8) @ s2
     return s3 ^ t ^ matrix_constant(0x3793fdff) @ matrix_get_bit(0) @ t 

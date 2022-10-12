@@ -15,7 +15,7 @@ class MT:
 
         self._state[0] = seed & 0xffffffff
         for i in range(1, MT.N):
-            self._state[i] = (0x6C078965 * (self._state[i-1] ^ (self._state[i-1] >> 30)) + i) & 0xffffffff
+            self._state[i] = (0x6c078965 * (self._state[i-1] ^ (self._state[i-1] >> 30)) + i) & 0xffffffff
 
         self._twist()
         self._index = 0
@@ -31,9 +31,9 @@ class MT:
 
         return self._temper()
           
-    def rand(self, lim=None):       
+    def rand(self, lim=0):       
         rnd = self.next()
-        return (rnd * lim) >> 32 if lim is not None else rnd >> 16
+        return (rnd * lim) >> 32 if lim else rnd >> 16
 
     def advance(self, n=1):
         self._index += n
@@ -43,9 +43,6 @@ class MT:
             for _ in range(q): 
                 self._twist()
     
-    def contain(self, untmp):
-        return untmp in self._state
-
     def _twist(self):
         for i in range(MT.N):
             x = (self._state[i] & 0x80000000) | (self._state[(i + 1) % MT.N] & 0x7fffffff)
@@ -70,7 +67,8 @@ class MT:
         x ^= x >> 18
         x ^= (x << 15) & MT.C
         x = reverse_xor_lshift_mask(x, 7, MT.B)
-        return reverse_xor_rshift_mask(x, 11)
+        x = reverse_xor_rshift_mask(x, 11)
+        return x
     
     @staticmethod
     def untemper_state(state):
@@ -78,24 +76,24 @@ class MT:
 
     @staticmethod
     def untwist(state):
-        for i in range(MT.N-1, -1, -1):         
+        for i in range(MT.N-1, -1, -1):                     
             y = state[i] ^ state[(i + MT.M) % MT.N]
-            if y > 0x7fffffff:
+            if y >> 31:
                 y ^= MT.A
             
             prev = (y << 1) & 0x80000000
 
             y_ = state[i-1] ^ state[(i + MT.M - 1) % MT.N]
-            if y_ > 0x7fffffff:
+            if y_ >> 31:
                 y_ ^= MT.A
                 prev |= 1
-            
-            prev |= (y_ << 1) & 0x7FFFFFFE 
+                                
+            prev |= (y_ << 1) & 0x7ffffffe
             state[i] = prev
        
     @staticmethod
     def reverse_init_linear(s, i):
-        s = (0x9638806D * (s - i)) & 0xffffffff
+        s = (0x9638806d * (s - i)) & 0xffffffff
         return s ^ (s >> 30)
     
     @staticmethod
@@ -121,32 +119,28 @@ class MT:
         x = u0 ^ u227
         
         s228_lsb = x >> 31
-        if s228_lsb: # without the xor, x is at most a 31 bit value
+        if s228_lsb: 
             x ^= MT.A
 
-        s227_msb = (x >> 30) & 1 # bit(s[227], 31) == bit(x, 30)
+        s227_msb = (x >> 30) & 1
         if s227_msb: 
-            x ^= 1 << 30
+            x ^= 0x40000000
         
-        s228_31 = (x << 1) | s228_lsb # recover first 31 bits of the previous state[228]
-        for msb in range(2):
-            s228 = (msb << 31) | s228_31
-            
-            s227 = MT.reverse_init_linear(s228, 228 + offset)
-            if (s227 >> 31) != s227_msb:
-                continue
-
-            seed = MT.reverse_init_loop(s228, 228 + offset)
-            
-            mt = MT(seed)
-            if mt._state[offset] == u0:
-                return seed
+        s228 = (x << 1) | s228_lsb
+        for _ in range(2):
+            if (MT.reverse_init_linear(s228, 228 + offset) >> 31) == s227_msb:
+                seed = MT.reverse_init_loop(s228, 228 + offset)
+                
+                if MT(seed)._state[offset] == u0:
+                    return seed
         
+            s228 |= 0x80000000
+               
         return -1
-
+    
     @staticmethod
-    def recover_seed_from_tempered_values(r0, r227, offset=0):
-        return MT.recover_seed_from_untempered_values(MT.untemper(r0), MT.untemper(r227), offset)
+    def recover_seed_from_tempered_values(t0, t227, offset=0):
+        return MT.recover_seed_from_untempered_values(MT.untemper(t0), MT.untemper(t227), offset)
     
     @staticmethod
     def recover_seed_from_untempered_state(state, min_advc=0, max_advc=10_000):
@@ -167,3 +161,42 @@ class MT:
     @staticmethod
     def recover_seed_from_tempered_state(state, min_advc=0, max_advc=10_000):
         return MT.recover_seed_from_untempered_state(MT.untemper_state(state), min_advc, max_advc)
+
+if __name__ == "__main__":
+    from random import randrange
+
+    '''rng = MT(0x12345678)
+    for i in range(10):
+        print(i, hex(rng.next()))'''
+    
+    '''rng = MT()
+    rng.advance(12_345)
+    print(hex(rng.next()))'''
+
+    lim = 1 << 32
+    max_advc = 10_000
+
+    '''for _ in range(1_000):
+        seed = randrange(0, lim)
+        advc = randrange(0, max_advc)
+
+        rng = MT(seed)
+        rng.advance(advc)
+
+        test = MT.recover_seed_from_untempered_state(rng.state)
+        
+        assert test == seed, f"{seed:08X} {test:08X}"'''
+
+    for _ in range(1_000):
+        seed = randrange(0, lim)
+        advc = randrange(0, max_advc)
+        advc -= advc % 624
+
+        rng = MT(seed)
+        rng.advance(advc)
+
+        state = [rng.next() for _ in range(624)]
+
+        test = MT.recover_seed_from_tempered_state(state)
+        
+        assert test == seed, f"expected: {seed:08X} | output: {test:08X}"    

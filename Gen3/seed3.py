@@ -1,4 +1,4 @@
-### Script to recover 16bit initial seed from 32bit target seed ###
+### Script to recover 16bit initial seed from target seed ###
 
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
@@ -8,9 +8,11 @@ from RNG import LCRNGR
 def get_init_seed(seed, min_advc, max_advc):
     rng = LCRNGR(seed)
     rng.advance(min_advc)
+    
     for advc in range(min_advc+1, max_advc):
         if (state := rng.next()) < 0x10000:
             return (state, advc)
+    
     return (None, -1)
 
 if __name__ == "__main__":

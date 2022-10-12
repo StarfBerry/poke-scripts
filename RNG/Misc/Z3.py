@@ -19,11 +19,11 @@ def mt_recover_seed_from_consecutive_outputs(out):
         raise ValueError("1 < len(outputs) < 625")
     
     seed = z3.BitVec("seed", 32)
-    state = [z3.BitVec(f"MT[{i}]", 32) for i in range(MT.N)]
+    state = [z3.BitVec(f"MT[{i}]", 32) for i in range(624)]
     
     state[0] = seed
-    for i in range(1, MT.N):
-        tmp = 0x6C078965 * (state[i-1] ^ (z3.LShR(state[i-1], 30))) + i
+    for i in range(1, 624):
+        tmp = 0x6c078965 * (state[i-1] ^ (z3.LShR(state[i-1], 30))) + i
         state[i] = tmp & 0xffffffff
     
     state = z3_mt_twist(state)
@@ -53,6 +53,6 @@ if __name__ == "__main__":
     
     start = time()
     test = mt_recover_seed_from_consecutive_outputs(out)
+    
     print("time:", time() - start)
-
     print(hex(seed), hex(test))

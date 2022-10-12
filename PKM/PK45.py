@@ -157,9 +157,6 @@ class PK4(ByteStruct):
         return [curr_hp, max_hp, atk, dfs, spa, spd, spe]
 
 class PK5(PK4):
-    def __init__(self, data):
-        super().__init__(data)
-    
     @property
     def nature(self):
         return self.data[0x41]

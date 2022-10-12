@@ -1,6 +1,6 @@
-class ByteStruct(object):
+class ByteStruct():
     def __init__(self, buffer):
-        self.data = bytearray(buffer[:])
+        self.data = bytearray(buffer.copy())
 
     def u16_from_le_bytes(self, start):
         return int.from_bytes(self.data[start:start+2], byteorder="little")

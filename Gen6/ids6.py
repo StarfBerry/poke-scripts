@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(__file__) + "\..")
 from datetime import datetime, timedelta
 from RNG import TinyMT
 
-def search_id(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc, max_advc):
+def search_id_6(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc, max_advc):
     seed = TinyMT.recover_seed_from_state(state)
 
     if seed == -1:
@@ -14,7 +14,7 @@ def search_id(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc, m
         return 
 
     print(f"TinyMT Seed Calibration: {seed:08X}")
-    print("Searching...")
+    print("Searching...\n")
         
     delta = dt_end - dt_start
     seconds = int(delta.total_seconds())
@@ -38,10 +38,10 @@ def search_id(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc, m
                 sid_ = rnd >> 16
                 tsv_ = (tid_ ^ sid_) >> 4
                 dt_ = dt_start + timedelta(seconds=second)
-                s_ = TinyMT.backward_state(rng.state, advc+1) # TinyMT state we should obtain on the language selection screen 
-                print(fmt.format(dt_, advc, tid_, sid_, tsv_, *s_))
+                state_ = TinyMT.backward_state(rng.state, advc+1) # TinyMT state we should obtain on the language selection screen 
+                print(fmt.format(dt_, advc, tid_, sid_, tsv_, *state_))
         
-        seed += 1000
+        seed += 1_000
     
     print("Research complete.")
 
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     min_advc = 30
     max_advc = 80
 
-    search_id(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc, max_advc)
+    search_id_6(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc, max_advc)

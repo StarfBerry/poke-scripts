@@ -29,7 +29,3 @@ def valid_time(hour, minute, second):
     
 def valid_date_time(year, month, day, hour, minute, second):
     return valid_date(year, month, day) and valid_time(hour, minute, second)
-
-def get_base_seed(dt):
-    base = (dt.month * dt.day + dt.minute + dt.second) & 0xff
-    return (base << 24) | (dt.hour << 16) | (dt.year % 2000)

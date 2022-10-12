@@ -19,7 +19,7 @@ def recover_lottery_seed_4(t1, t2, t3, hgss=True):
             return seed
     return -1
 
-def generate_winning_tickets(date_start, t1, t2, t3, ids, max_advc, hgss=True):
+def search_winning_tickets_4(date_start, t1, t2, t3, ids, max_advc, hgss=True):
     seed = recover_lottery_seed_4(t1, t2, t3, hgss)
     if seed == -1:
         print("The lottery prng state has not been recovered.")
@@ -51,8 +51,7 @@ if __name__ == "__main__":
     t1 = 57099
     t2 = 33596
     t3 = 25979
-    seed = recover_lottery_seed_4(t1, t2, t3, hgss)
     target_ids = [5, 10101]
     max_advc = 100_000
     
-    generate_winning_tickets(date, t1, t2, t3, target_ids, max_advc, hgss)
+    search_winning_tickets_4(date, t1, t2, t3, target_ids, max_advc, hgss)

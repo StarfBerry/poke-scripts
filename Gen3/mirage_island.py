@@ -1,6 +1,6 @@
 '''
-Script to find a static/wild Pokémon with a PID which matches your Mirage Island seed.
-To check your Mirage Island seed: https://projectpokemon.org/home/files/file/2888-pkhex-plugin-mirage-island-tool/
+Script to find a static/wild Pokémon with a PID which matches your Mirage Island value.
+To check your Mirage Island value: https://projectpokemon.org/home/files/file/2888-pkhex-plugin-mirage-island-tool/
 '''
 
 import os, sys
@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG, LCRNGR
 
-def search_wild_16bit_low_pid(seed, mirage, delay):
+def generate_wild_pid_low(seed, mirage, delay):
     rng = LCRNG(seed)
     rng.advance(delay)
     res = False
@@ -38,7 +38,7 @@ def search_wild_16bit_low_pid(seed, mirage, delay):
         print("No results.")
 
 
-def search_static_16bit_low_pid(seed, mirage, delay):
+def generate_static_pid_low(seed, mirage, delay):
     rng = LCRNG(seed)
     rng.advance(delay)
     res = False
@@ -66,6 +66,6 @@ if __name__ == "__main__":
     print()
 
     if wild:
-        search_wild_16bit_low_pid(seed, mirage, delay)
+        generate_wild_pid_low(seed, mirage, delay)
     else:
-        search_static_16bit_low_pid(seed, mirage, delay)
+        generate_static_pid_low(seed, mirage, delay)

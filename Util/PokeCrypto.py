@@ -5,18 +5,17 @@ sys.path.append(os.path.dirname(__file__))
 
 from Bytes import u16_from_le_bytes, u32_from_le_bytes
 
-BLOCK_POSITION = [
+BLOCK_POSITION = (
     0, 1, 2, 3, 0, 1, 3, 2, 0, 2, 1, 3, 0, 3, 1, 2, 0, 2, 3, 1, 0, 3, 2, 1, 1, 0, 2, 3, 1, 0, 3, 2,
     2, 0, 1, 3, 3, 0, 1, 2, 2, 0, 3, 1, 3, 0, 2, 1, 1, 2, 0, 3, 1, 3, 0, 2, 2, 1, 0, 3, 3, 1, 0, 2,
     2, 3, 0, 1, 3, 2, 0, 1, 1, 2, 3, 0, 1, 3, 2, 0, 2, 1, 3, 0, 3, 1, 2, 0, 2, 3, 1, 0, 3, 2, 1, 0,
     # duplicates of 0-7 to eliminate modulus
-    0, 1, 2, 3, 0, 1, 3, 2, 0, 2, 1, 3, 0, 3, 1, 2, 0, 2, 3, 1, 0, 3, 2, 1, 1, 0, 2, 3, 1, 0, 3, 2,
-]
+    0, 1, 2, 3, 0, 1, 3, 2, 0, 2, 1, 3, 0, 3, 1, 2, 0, 2, 3, 1, 0, 3, 2, 1, 1, 0, 2, 3, 1, 0, 3, 2)
 
-BLOCK_POSITION_INVERT = [
+BLOCK_POSITION_INVERT = (
     0, 1, 2, 4, 3, 5, 6, 7, 12, 18, 13, 19, 8, 10, 14, 20, 16, 22, 9, 11, 15, 21, 17, 23,
-    0, 1, 2, 4, 3, 5, 6, 7, # duplicates of 0-7 to eliminate modulus
-]
+    # duplicates of 0-7 to eliminate modulus
+    0, 1, 2, 4, 3, 5, 6, 7)
 
 SIZE_1ULIST = 69
 SIZE_1JLIST = 59
@@ -54,7 +53,6 @@ SIZE_8BLOCK = 80
 SIZE_8APARTY = 376
 SIZE_8ASTORED = 360
 SIZE_8ABLOCK = 88
-
 
 def shuffle_array_3(data, sv):
     sdata = data.copy()

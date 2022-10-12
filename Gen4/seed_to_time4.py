@@ -4,6 +4,10 @@ sys.path.append(os.path.dirname(__file__) + "\..")
 from datetime import datetime
 from Util import days_in_month
 
+def get_base_seed(dt):
+    base = (dt.month * dt.day + dt.minute + dt.second) & 0xff
+    return (base << 24) | (dt.hour << 16) | (dt.year % 2000)
+
 def seed_to_time_4(seed, year=2000, target_month=1, target_second=0):    
     base = seed >> 24
     hour = (seed >> 16) & 0xff
@@ -24,7 +28,7 @@ def seed_to_time_4(seed, year=2000, target_month=1, target_second=0):
     
     return (res, delay)
 
-def search_seed_4(seed, year, month, second):
+def generate_seed_4(seed, year, month, second):
     res, delay = seed_to_time_4(seed, year, month, second)
 
     if len(res) == 0:
@@ -44,4 +48,4 @@ if __name__ == "__main__":
 
     print()
 
-    search_seed_4(seed, year, month, second)
+    generate_seed_4(seed, year, month, second)

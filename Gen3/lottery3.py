@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG, MRNG
 
-def generate_tickets(game, seed, max_advc, tids, days_since):
+def generate_winning_tickets_3(game, seed, max_advc, tids, days_since):
     print("| {:^10} | {} |".format("Advances", "Ticket"))
     print("-" * 23)
     fmt = "| {:<10} | {:05d}  |"
@@ -27,11 +27,11 @@ if __name__ == "__main__":
     from Util import ask_int, u32
     
     game = ask_int("Game (0=RS 1=Emerald) ? ")
-    seed = ask_int("Initial Seed: 0x", 16) if game == 0 else 0 # Not possible to use the battle video/painting for this rng.
+    seed = ask_int("Initial Seed: 0x", 16) if game == 0 else 0 # Not possible to use the battle video/painting seed for this rng.
     max_advc = u32(ask_int("Max Advances: "))
     tids = [int(tid) for tid in input("Target TIDs (x.x.x...): ").split(".")]
     days_since = ask_int("How many days have elapsed since your previous save (can be 0): ") 
     
     print()
     
-    generate_tickets(game, seed, max_advc, tids, days_since)
+    generate_winning_tickets_3(game, seed, max_advc, tids, days_since)
