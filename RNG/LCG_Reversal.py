@@ -22,12 +22,11 @@ LCRNG_MOD   = 0x67D3     # u32(0x67d3 * LCRNG_MUL) < 2^16 (for seed and seed + 0
 LCRNG_PAT   = 0xD3E      # pattern in the distribution of the "low solutions" modulo 0x67d3
 LCRNG_INC   = 0x4034     # (((diff * 0x67d3 + 0x4034) >> 16) * 0xd3e) % 0x67d3 line up with the first 16bit low solution modulo 0x67d3 if it exists (see diff definition in code)
 
-# Same as LCRNG
-LCRNG_MUL_2 = 0xC2A29A69
-LCRNG_ADD_2 = 0xE97E7B6A
-LCRNG_MOD_2 = 0x3A89
-LCRNG_PAT_2 = 0x2E4C
-LCRNG_INC_2 = 0x5831
+LCRNG_MUL_2 = 0xC2A29A69 # LCRNG_MUL^2
+LCRNG_ADD_2 = 0xE97E7B6A # LCRNG_ADD * (1 + LCRNG_MUL)
+LCRNG_MOD_2 = 0x3A89     # u32(0x3a89 * LCRNG_MUL_2) < 2^16 (for seed and seed + 0x3a89, we have a good chance that the 16bit high of the next output will be the same for both)
+LCRNG_PAT_2 = 0x2E4C     # pattern in the distribution of the "low solutions" modulo 0x3a89
+LCRNG_INC_2 = 0x5831     # (((diff * 0x3a89 + 0x5831) >> 16) * 0x2e4c) % 0x3a89 line up with the first 16bit low solution modulo 0x3a89 if it exists (see diff definition in code)
 
 def lcrng_recover_pid_seeds(pid):
     first = (pid & 0xffff) << 16
@@ -38,8 +37,7 @@ def lcrng_recover_pid_seeds(pid):
 
     seeds = []
     for low in range(start, 0x10000, LCRNG_MOD): # at most 3 iterations
-        test = first | low
-        if (test * LCRNG_MUL + LCRNG_ADD) & 0xffff0000 == second:
+        if ((test := first | low) * LCRNG_MUL + LCRNG_ADD) & 0xffff0000 == second:
             seeds.append(lcrng_prev(test))
     
     return seeds
@@ -55,8 +53,7 @@ def lcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe):
     seeds = []
     for start in (start1, start2):
         for low in range(start, 0x10000, LCRNG_MOD): # at most 3 iterations 
-            test = first | low
-            if (test * LCRNG_MUL + LCRNG_ADD) & 0x7fff0000 == second:
+            if ((test := first | low) * LCRNG_MUL + LCRNG_ADD) & 0x7fff0000 == second:
                 seeds.append(seed := lcrng_prev(test))
                 seeds.append(seed ^ 0x80000000)
 
@@ -72,8 +69,7 @@ def lcrng_recover_pid_seeds_2(pid):
 
     seeds = []
     for low in range(start, 0x10000, LCRNG_MOD_2): # at most 5 iterations
-        test = first | low
-        if (test * LCRNG_MUL_2 + LCRNG_ADD_2) & 0xffff0000 == second:
+        if ((test := first | low) * LCRNG_MUL_2 + LCRNG_ADD_2) & 0xffff0000 == second:
             seeds.append(lcrng_prev(test))
     
     return seeds
@@ -89,9 +85,8 @@ def lcrng_recover_ivs_seeds_2(hp, atk, dfs, spa, spd, spe):
 
     seeds = []
     for start in (start1, start2):
-        for low in range(start, 0x10000, LCRNG_MOD_2): # at most 5 iterations 
-            test = first | low
-            if (test * LCRNG_MUL_2 + LCRNG_ADD_2) & 0x7fff0000 == second:
+        for low in range(start, 0x10000, LCRNG_MOD_2): # at most 5 iterations
+            if ((test := first | low) * LCRNG_MUL_2 + LCRNG_ADD_2) & 0x7fff0000 == second:
                 seeds.append(seed := lcrng_prev(test))
                 seeds.append(seed ^ 0x80000000)
 
@@ -108,7 +103,7 @@ GCRNG_BASE    = 0x343FABC02       # (GCRNG_MUL + 1) * 0xffff
 
 # GCRNG_MUL^3 don't produce the lowest KMAX but allow to skip more K's and obtain the least iterations for CHANNEL ivs
 GCRNG_MUL_3   = 0x45C82BE5        # GCRNG_MUL^3
-GCRNG_SUB_3   = 0xCAF65B56        # 0x269EC3 * (1 + GCRNG_MUL + GCRNG_MUL^2) - 0x7ffffff
+GCRNG_SUB_3   = 0xCAF65B56        # GCRNG_ADD * (1 + GCRNG_MUL + GCRNG_MUL^2) - 0x7ffffff
 GCRNG_BASE_3  = 0x22E415EEA37D41A # (GCRNG_MUL_3 + 1) * 0x7ffffff
 GCRNG_PRIME_3 = 0x3               # (3 << 32) % GCRNG_MUL_3 = 0x661D29 (small compared to GCRNG_MUL_3, allow to avoid most values of K that do not pass the test)
 GCRNG_ADD_3   = 0x300000000       # 3 << 32
