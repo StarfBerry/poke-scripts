@@ -20,7 +20,7 @@ def generate_shiny_tuto(seed, minAdvc, maxAdvc):
         tid = tmp.rand()
         
         pid = 0
-        while (pid & 0xff) < 128: # Male only
+        while (pid & 0xff) < 127: # Male only
             pidl = tmp.rand()
             pidh = tmp.rand()
             pid = (pidh << 16) | pidl

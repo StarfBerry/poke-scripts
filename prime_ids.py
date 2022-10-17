@@ -46,7 +46,7 @@ def generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid):
                 print_ids(custom_tid, sid, pxor, gen)
                 res = True
         if not res:
-            print(f"No resuts with TID {custom_tid:05d} :(")
+            print(f"No results with TID {custom_tid:05d} :(")
     elif (square and pxor & 1) or (wild5 and pid_bit): # ids have different parity ==> try with sid = 2
         sid = 2
         low_tid = (pxor ^ sid) & mask

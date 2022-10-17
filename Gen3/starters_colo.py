@@ -26,7 +26,7 @@ class StartersColo:
                 pidl = rng.rand()
                 xor = pidh ^ pidl ^ self.tid ^ self.sid
 
-                if (pidl & 0xff) >= 32 and xor >= 8: # male and not shiny
+                if (pidl & 0xff) >= 31 and xor >= 8: # male and not shiny
                     break         
             
             starters.append(Pokemon(iv1=iv1, iv2=iv2, ability=ability, pidh=pidh, pidl=pidl))
@@ -62,7 +62,7 @@ class StartersColo:
             xor = tid ^ sid ^ pidh ^ pidl
 
             # if the first reversed Umbreon's pid is not valid, the ivs cannot be obtained with this seed
-            if (pidl & 0xff) >= 32 and xor >= 8:            
+            if (pidl & 0xff) >= 31 and xor >= 8:            
                 seed_ = GCRNGR(rng.state).advance(8)
                 res.append(StartersColo(seed_))
                 
@@ -74,7 +74,7 @@ class StartersColo:
                     tid, sid = reverse_tid_sid_from_pid_gen(rng.state)
                     xor = tid ^ sid ^ pidh ^ pidl
                     
-                    if (pidl & 0xff) < 32 or xor < 8:
+                    if (pidl & 0xff) < 31 or xor < 8:
                         seed_ = GCRNGR(rng.state).advance(8)
                         res.append(StartersColo(seed_))
                     else:
@@ -145,7 +145,7 @@ def search_starter_colo(min_ivs, max_ivs, target_natures, umbreon=True):
                                     print("######################")
     
     if not res:
-        print("No resutls :(")
+        print("No results :(")
 
 if __name__ == "__main__":
     min_ivs = [31, 0, 31, 31, 31, 31]
@@ -158,7 +158,6 @@ if __name__ == "__main__":
     #test = StartersColo.ivs_to_umbreon(*max_ivs)
     #test = StartersColo.ivs_to_espeon(*min_ivs)
     #test = StartersColo.ivs_to_espeon(1, 1, 1, 1, 1, 1)
-    
     
     '''for res in test:
         print(res)

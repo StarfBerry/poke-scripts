@@ -59,7 +59,7 @@ def lcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe):
 
     return seeds
 
-# Method 2 PID
+# Method 3 PID
 def lcrng_recover_pid_seeds_2(pid):
     first = (pid & 0xffff) << 16
     second = pid & 0xffff0000

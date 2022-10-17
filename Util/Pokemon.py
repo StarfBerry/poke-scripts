@@ -28,7 +28,7 @@ def get_nature(rnd):
     return NATURES[rnd % 25]
 
 def get_gender(rnd, female_ratio=1/2):
-    return "Female" if rnd < (256 * female_ratio) else "Male"
+    return "Female" if rnd < int(255 * female_ratio) else "Male"
 
 def get_psv(pid, rshift=3):
     return ((pid >> 16) ^ (pid & 0xffff)) >> rshift

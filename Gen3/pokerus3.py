@@ -40,7 +40,6 @@ def generate_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
     print("-" * 35)
     
     fmt = "| {:^9} | {:^10} | {:^6} |"
-    res = False
 
     rng = LCRNG(seed)
     rng.advance(min_advc + delay)
@@ -50,7 +49,6 @@ def generate_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
         if test % 0x4000 == 0 and test != 0:
             slot, strain = get_pokerus_slot_strain_3(rng.state, party, emerald)
             print(fmt.format(advc, slot, strain))
-            res = True
 
     print("-" * 35)
 
