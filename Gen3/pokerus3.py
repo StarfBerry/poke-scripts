@@ -22,7 +22,7 @@ def get_pokerus_slot_strain_3(seed, party, emerald=True):
 
     xy = 0
     while check(xy):
-        xy = rng.rand()
+        xy = rng.next_u16()
     
     if xy & 0xf0:
         xy &= 7
@@ -45,7 +45,7 @@ def generate_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
     rng.advance(min_advc + delay)
 
     for advc in range(min_advc, max_advc+1):
-        test = rng.rand()
+        test = rng.next_u16()
         if test % 0x4000 == 0 and test != 0:
             slot, strain = get_pokerus_slot_strain_3(rng.state, party, emerald)
             print(fmt.format(advc, slot, strain))

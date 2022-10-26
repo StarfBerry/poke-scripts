@@ -14,11 +14,11 @@ from seed_to_time4 import get_base_seed
 def get_occidentary(seed, advc, hgss=True):
     occ = advc
     rng = LCRNG(seed)
-    rnd = rng.rand()
-    nat = rnd % 25 if hgss else rnd // 0xA3E
+    rnd = rng.next_u16()
+    nat = rnd % 25 if hgss else rnd // 0xa3e
     
     while 1:
-        pid = rng.rand() | (rng.next() & 0xffff0000)
+        pid = rng.next_u16() | (rng.next() & 0xffff0000)
         occ += 2 
         if pid % 25 == nat:
             break
@@ -27,26 +27,26 @@ def get_occidentary(seed, advc, hgss=True):
 
 def occidentary_to_advances(state, occ, hgss=True):    
     if hgss:
-        get_nat = lambda rnd: rnd % 25 # Method K
+        get_nat = lambda x: x % 25 # Method K
     else:
-        get_nat = lambda rnd: rnd // 0xA3E # Method J
+        get_nat = lambda x: x // 0xa3e # Method J
     
     advc = None
     occ -= 6
     rng = LCRNGR(state)
     rng.advance(3)
-    h, l = rng.rand(), rng.rand()
+    h, l = rng.next_u16(), rng.next_u16()
     nat = ((h << 16) | l) % 25
 
     while occ >= 2:
         occ -= 2
-        h = rng.rand()
+        h = rng.next_u16()
         
         fixed_nat = get_nat(h)
         if fixed_nat == nat:
             advc = occ # no break to get the lowest advc
         
-        pid = (h << 16) | rng.rand()
+        pid = (h << 16) | rng.next_u16()
         if (pid % 25) == nat: 
             break
     
@@ -58,7 +58,7 @@ def get_pokerus_slot_strain_4(seed, party):
     
     xy = 0
     while (xy & 7) == 0:
-        xy = rng.rand()
+        xy = rng.next_u16()
     
     if xy & 0xf0:
         xy &= 7
@@ -82,7 +82,7 @@ def generate_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc):
         rng = LCRNG(seed)
         rng.next() # to make a difference of 2 between advc and occ
         for occ in range(max_occ):
-            test = rng.rand()
+            test = rng.next_u16()
             if (test % 0x4000) == 0 and test != 0:
                 advc = occidentary_to_advances(LCRNGR(rng.state).advance(2), occ, hgss)
                 if advc is not None and advc <= max_advc:

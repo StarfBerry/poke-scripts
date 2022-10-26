@@ -13,16 +13,19 @@ class EeveeXD:
         self.seed = seed
         rng = GCRNG(seed)
 
-        self.tid = rng.rand()
-        self.sid = rng.rand()
+        self.tid = rng.next_u16()
+        self.sid = rng.next_u16()
 
         rng.advance(2)
-        self.ivs = get_ivs(rng.rand(), rng.rand())
+        
+        iv1 = rng.next_u16()
+        iv2 = rng.next_u16()
+        self.ivs = get_ivs(iv1, iv2)
 
-        self.ability = rng.rand() & 1
+        self.ability = rng.next_u16() & 1
 
-        pidh = rng.rand()
-        pidl = rng.rand()
+        pidh = rng.next_u16()
+        pidl = rng.next_u16()
         self.pid = (pidh << 16) | pidl
 
         self.nature = get_nature(self.pid)

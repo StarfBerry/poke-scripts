@@ -16,13 +16,13 @@ def generate_shiny_tuto(seed, minAdvc, maxAdvc):
 
     for advc in range(minAdvc, maxAdvc):
         tmp = LCRNG(rng.next())         
-        sid = tmp.rand()
-        tid = tmp.rand()
+        sid = tmp.next_u16()
+        tid = tmp.next_u16()
         
         pid = 0
         while (pid & 0xff) < 127: # Male only
-            pidl = tmp.rand()
-            pidh = tmp.rand()
+            pidl = tmp.next_u16()
+            pidh = tmp.next_u16()
             pid = (pidh << 16) | pidl
         
         xor = pidh ^ pidl ^ tid ^ sid

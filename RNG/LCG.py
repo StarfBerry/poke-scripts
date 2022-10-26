@@ -28,10 +28,12 @@ class LCRNG:
     def next(self):
         self._state = (self._state * self.MUL[0] + self.ADD[0]) & self.MASK
         return self._state
+    
+    def next_u16(self):
+        return self.next() >> 16
 
-    def rand(self, lim=0):
-        rnd = self.next() >> 16
-        return rnd % lim if lim else rnd
+    def rand(self, lim):
+        return self.next_u16() % lim
 
     def advance(self, n=1):              
         i = 0
@@ -79,11 +81,8 @@ class MRNG(LCRNG):
         0x1EF73300, 0x1F9A6600, 0x85E4CC00, 0x26899800, 0xB8133000, 0x1C266000, 0xE84CC000, 0x90998000, 
         0x21330000, 0x42660000, 0x84CC0000, 0x09980000, 0x13300000, 0x26600000, 0x4CC00000, 0x99800000, 
         0x33000000, 0x66000000, 0xCC000000, 0x98000000, 0x30000000, 0x60000000, 0xC0000000, 0x80000000)
-    
-    def rand15(self):
-        return (self.next() >> 16) & 0x7fff
 
-class MRNGR(MRNG, LCRNGR):   
+class MRNGR(LCRNGR):   
     ADD = (
         0xFC77A683, 0x8C319932, 0xD97E8E94, 0x37D79BE8, 0xDB2E42D0, 0xE39B31A0, 0x71E51340, 0x3624E680, 
         0x92B4CD00, 0xA7159A00, 0x94DB3400, 0x44766800, 0xF3ECD000, 0x93D9A000, 0xD7B34000, 0x6F668000, 
@@ -166,9 +165,14 @@ class BWRNG(LCRNG):
         0x8D8D000000000000, 0x1B1A000000000000, 0x3634000000000000, 0x6C68000000000000, 0xD8D0000000000000, 0xB1A0000000000000, 0x6340000000000000, 0xC680000000000000,
         0x8D00000000000000, 0x1A00000000000000, 0x3400000000000000, 0x6800000000000000, 0xD000000000000000, 0xA000000000000000, 0x4000000000000000, 0x8000000000000000)
     
-    def rand(self, lim=0):
-        rnd = self.next() >> 32
-        return (rnd * lim) >> 32 if lim else rnd >> 16
+    def next_u16(self):
+        return self.next() >> 48
+    
+    def next_u32(self):
+        return self.next() >> 32
+
+    def rand(self, lim):
+        return (self.next32() * lim) >> 32
     
 class BWRNGR(BWRNG):
     MUL = (

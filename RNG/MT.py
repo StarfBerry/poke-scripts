@@ -30,10 +30,9 @@ class MT:
             self._index = 0
 
         return self._temper()
-          
-    def rand(self, lim=0):       
-        rnd = self.next()
-        return (rnd * lim) >> 32 if lim else rnd >> 16
+              
+    def rand(self, lim):       
+        return (self.next() * lim) >> 32
 
     def advance(self, n=1):
         self._index += n
@@ -110,36 +109,33 @@ class MT:
     x = S[227] ^ S[0] = (((s[227] & 0x80000000) | (s[228] & 0x7fffffff)) >> 1) ^ (s[228] & 1) * 0x9908B0DF
     '''
 
-    # based on: https://www.ambionics.io/blog/php-mt-rand-prediction
+    # Based on: https://www.ambionics.io/blog/php-mt-rand-prediction
+    # Recover the MT seed with two untempered values 227 advances apart
     @staticmethod
     def recover_seed_from_untempered_values(u0, u227, offset=0):
-        if offset < 0 or offset > 395:
-            raise ValueError("0 <= offset < 396")
-        
         x = u0 ^ u227
-        
-        s228_lsb = x >> 31
-        if s228_lsb: 
+
+        if s228_lsb := x >> 31: 
             x ^= MT.A
 
-        s227_msb = (x >> 30) & 1
-        if s227_msb: 
+        if s227_msb := (x >> 30) & 1: 
             x ^= 0x40000000
         
-        s228 = (x << 1) | s228_lsb
-        for _ in range(2):
+        s228_31 = (x << 1) | s228_lsb
+        
+        for s228 in (s228_31, s228_31 | 0x80000000):
             if (MT.reverse_init_linear(s228, 228 + offset) >> 31) == s227_msb:
                 seed = MT.reverse_init_loop(s228, 228 + offset)
                 
                 if MT(seed)._state[offset] == u0:
                     return seed
-        
-            s228 |= 0x80000000
                
         return -1
     
     @staticmethod
     def recover_seed_from_tempered_values(t0, t227, offset=0):
+        if offset < 0 or offset > 395:
+            raise ValueError("0 <= offset < 396")
         return MT.recover_seed_from_untempered_values(MT.untemper(t0), MT.untemper(t227), offset)
     
     @staticmethod
@@ -187,7 +183,22 @@ if __name__ == "__main__":
         
         assert test == seed, f"{seed:08X} {test:08X}"'''
 
-    for _ in range(1_000):
+    '''for _ in range(10_000):
+        seed = randrange(0, lim)
+        ofs = randrange(0, 396)
+
+        rng = MT(seed)
+        rng.advance(ofs)
+
+        t0 = rng.next()
+        rng.advance(226)
+        t227 = rng.next()
+
+        test = MT.recover_seed_from_tempered_values(t0, t227, ofs)
+
+        assert test == seed, f"{seed:08X} {test:08X}"'''
+
+    for _ in range(5_000):
         seed = randrange(0, lim)
         advc = randrange(0, max_advc)
         advc -= advc % 624
@@ -199,4 +210,4 @@ if __name__ == "__main__":
 
         test = MT.recover_seed_from_tempered_state(state)
         
-        assert test == seed, f"expected: {seed:08X} | output: {test:08X}"    
+        assert test == seed, f"expected: {seed:08X} | output: {test:08X}"

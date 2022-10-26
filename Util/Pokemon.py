@@ -41,7 +41,7 @@ def compare_ivs(min_ivs, max_ivs, ivs):
 
 def compare_egg_ivs(egg_ivs, target_ivs):    
     for i, iv in enumerate(egg_ivs):
-        if iv >= 0 and iv != target_ivs[i]:
+        if iv >= 0 and iv != target_ivs[i]: # (-1, -2) -> (A, B)
             return False
     return True
 

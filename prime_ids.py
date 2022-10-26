@@ -13,7 +13,7 @@ def print_ids(tid, sid, pxor, gen):
     if gen == 3:
         tidsid = (tid << 16) | sid
         out += f" tidsid: {tidsid:08X} |"
-    elif gen > 6:
+    elif gen >= 7:
         g7id = (tid + sid * 0x10000) % 10**6
         out += f" G7ID+: {g7id:06d} |"
     xor = tid ^ sid ^ pxor
@@ -34,7 +34,7 @@ def generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid):
     elif wild5:
         pid_bit = (pid >> 31) ^ (pid & 1)
         check = lambda tid, sid: ((tid & 1) ^ (sid & 1)) == pid_bit # id_bit == pid_bit to follow the rule (HPID ^ LPID ^ LTID ^ LSID) == 0
-    elif gen > 6:
+    elif gen >= 7:
         check = lambda tid, sid: is_prime((tid + sid * 0x10000) % 10**6) # tid, sid and G7ID+ must be prime. G7ID+ has around 8% chance to be prime.
     else:
         check = lambda tid, sid: True
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     rs = gen == 3 and ask("RS ? Y/N: ")
     gc = gen == 3 and not rs and ask("GameCube ? Y/N: ")
     wild5 = gen == 5 and ask("Wild/Static ? Y/N: ")
-    custom_tid = ask("Custom Prime TID ? Y/N: ") and ask_int("TID: ", condition=lambda tid: is_prime(tid) and tid < 65536)
+    custom_tid = ask("Custom Prime TID ? Y/N: ") and ask_int("TID: ", condition=lambda tid: tid < 65536 and is_prime(tid))
     square = ask("Square only ? Y/N: ")
     
     print()

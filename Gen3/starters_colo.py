@@ -9,21 +9,21 @@ class StartersColo:
         self.seed = seed
         rng = GCRNG(seed)
 
-        self.tid = rng.rand()
-        self.sid = rng.rand()
+        self.tid = rng.next_u16()
+        self.sid = rng.next_u16()
 
         starters = []
         for _ in range(2):
             rng.advance(2)
 
-            iv1 = rng.rand()
-            iv2 = rng.rand()
+            iv1 = rng.next_u16()
+            iv2 = rng.next_u16()
         
-            ability = rng.rand() & 1
+            ability = rng.next_u16() & 1
 
             while 1:
-                pidh = rng.rand()
-                pidl = rng.rand()
+                pidh = rng.next_u16()
+                pidl = rng.next_u16()
                 xor = pidh ^ pidl ^ self.tid ^ self.sid
 
                 if (pidl & 0xff) >= 31 and xor >= 8: # male and not shiny
@@ -56,7 +56,7 @@ class StartersColo:
             rng = GCRNGR(seed)
             
             pidl = rng.advance(2) >> 16
-            pidh = rng.rand()
+            pidh = rng.next_u16()
 
             tid, sid = reverse_tid_sid_from_pid_gen(rng.state)
             xor = tid ^ sid ^ pidh ^ pidl
@@ -68,8 +68,8 @@ class StartersColo:
                 
                 # check if there was one or several rerolls before the valid pid
                 while 1:
-                    pidl = rng.rand()
-                    pidh = rng.rand()
+                    pidl = rng.next_u16()
+                    pidh = rng.next_u16()
 
                     tid, sid = reverse_tid_sid_from_pid_gen(rng.state)
                     xor = tid ^ sid ^ pidh ^ pidl
@@ -90,8 +90,8 @@ class StartersColo:
 def reverse_tid_sid_from_pid_gen(seed):
     rng = GCRNGR(seed)
     rng.advance(5)
-    sid = rng.rand()
-    tid = rng.rand()
+    sid = rng.next_u16()
+    tid = rng.next_u16()
     return (tid, sid)
 
 # Some seeds are skipped on the name input screen
@@ -102,9 +102,7 @@ def is_accessible_in_name_screen(seed):
     rng = GCRNGR(seed)
 
     prev1 = seed > inf
-    prev2 = rng.next() > inf
-    prev3 = rng.next() > inf
-    prev4 = rng.next() > inf
+    prev2, prev3, prev4 = (rng.next() > inf for _ in range(3))
 
     if prev1 and prev2 and prev3 and prev4: 
         return True

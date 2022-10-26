@@ -17,7 +17,7 @@ def generate_winning_tickets_3(game, seed, max_advc, tids, days_since):
     rng.advance(25 if game == 0 else 83) # delay
 
     for advc in range(max_advc):
-        ticket = MRNG(rng.rand()).advance(days_since) & 0xffff
+        ticket = MRNG(rng.next_u16()).advance(days_since) & 0xffff
         if ticket in tids:
             print(fmt.format(advc, ticket))
     

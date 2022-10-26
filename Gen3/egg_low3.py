@@ -3,18 +3,18 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
-from RNG import LCRNG
+from RNG import LCRNG, LCRNGR
 
 def generate_16bit_low_pid(seed, target_low, max_advc, compatibility, delay):
     rng = LCRNG(seed)
     rng.advance(delay)
+    
     res = False
-
     for advc in range(1, max_advc):
-        prev = rng.state
         low = rng.rand(0xfffe) + 1
         if low == target_low:
-            test = ((prev >> 16) * 100) // 0xffff
+            prev = LCRNGR(rng.state).next_u16()
+            test = (prev * 100) // 0xffff
             if test < compatibility:
                 print(advc)
                 res = True

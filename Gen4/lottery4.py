@@ -15,7 +15,7 @@ def recover_lottery_seed_4(t1, t2, t3, hgss=True):
     for low in range(0x10000):
         seed = lotto_back(high | low).next()
         day = ARNG(seed)
-        if lotto_advc(day.next()).rand() == t2 and lotto_advc(day.next()).rand() == t3:
+        if lotto_advc(day.next()).next_u16() == t2 and lotto_advc(day.next()).next_u16() == t3:
             return seed
     return -1
 
@@ -27,12 +27,12 @@ def search_winning_tickets_4(date_start, t1, t2, t3, ids, max_advc, hgss=True):
     
     print(f"Recovered Seed: {seed:08X}\n")
 
-    res = False
     lotto_advc = LCRNG if hgss else MRNG
     day = ARNG(seed)
-    
+
+    res = False    
     for advc in range(1, max_advc):
-        ticket = lotto_advc(day.next()).rand()
+        ticket = lotto_advc(day.next()).next_u16()
         if ticket in ids:
             date = date_start + timedelta(days=advc)
             cycle = 0

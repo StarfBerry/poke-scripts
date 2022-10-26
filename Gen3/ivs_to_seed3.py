@@ -13,7 +13,7 @@ class Method(Enum):
     Method4 = (0, 0, 1) # [PIDL] [PIDH] [IV1] [Blank] [IV2]
     Method1Reverse = (0, 0, 0, -1) # [PIDH] [PIDL] [IV1] [IV2]
 
-    Gamecube = 6 # [IV1] [IV2] [Ability] [PIDH] [PIDL]
+    GameCube = 6 # [IV1] [IV2] [Ability] [PIDH] [PIDL]
     Channel  = 7 # [PIDH] [PIDL] [Blank]*3 [HP] [Atk] [Def] [Spe] [Spa] [Spd]
 
 def ivs_to_pkm_3(hp, atk, dfs, spa, spd, spe, method=Method.Method1):
@@ -31,7 +31,7 @@ def ivs_to_pkm_3(hp, atk, dfs, spa, spd, spe, method=Method.Method1):
         origin_seed = LCRNGR(seed).advance(2 + a + b)
         rng = LCRNG(origin_seed)
 
-        pidl = rng.rand()
+        pidl = rng.next_u16()
         pidh = rng.advance(1 + a) >> 16
         
         if method == Method.Method1Reverse:
@@ -50,15 +50,15 @@ def gc_ivs_to_pkm(hp, atk, dfs, spa, spd, spe):
         
         ability = (rng.advance(3) >> 16) & 1        
         
-        pidh = rng.rand()
-        pidl = rng.rand()
+        pidh = rng.next_u16()
+        pidl = rng.next_u16()
  
         res.append(Pokemon(pidh=pidh, pidl=pidl, ivs=ivs, ability=ability, seed=seed))
     
     return res
 
 def search_pkm_3(min_ivs, max_ivs, target_natures, method):
-    if method == Method.Gamecube:
+    if method == Method.GameCube:
         get_pkm = lambda hp, atk, dfs, spa, spd, spe: gc_ivs_to_pkm(hp, atk, dfs, spa, spd, spe)
     elif method == Method.Channel:
         get_pkm = lambda hp, atk, dfs, spa, spd, spe: JirachiChannel.ivs_to_jirachi(hp, atk, dfs, spa, spd, spe)

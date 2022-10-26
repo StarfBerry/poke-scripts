@@ -9,8 +9,10 @@ from Util import get_psv, get_nature, format_ivs
 def get_new_pid(pid):
     psv = get_psv(pid)
     rng = ARNG(pid)
-    while psv == get_psv(pid):
+    while 1:
         pid = rng.next()
+        if get_psv(pid) != psv:
+            break
     return pid
 
 def search_manaphy(min_ivs, max_ivs, target_natures):
@@ -26,7 +28,7 @@ def search_manaphy(min_ivs, max_ivs, target_natures):
                             for s in lcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe):
                                 h = s >> 16
                                 rng = LCRNGR(s)
-                                l = rng.rand()
+                                l = rng.next_u16()
                                 pid1 = (h << 16) | l
                                 nat1 = get_nature(pid1)
                                 pid2 = get_new_pid(pid1)

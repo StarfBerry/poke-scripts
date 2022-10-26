@@ -137,6 +137,7 @@ class TinyMT:
     def reverse_init_loop(s):
         for i in range(7, 0, -1):
             s[i & 3] ^= (TinyMT.M * (s[(i- 1) & 3] ^ (s[(i - 1) & 3] >> 30)) + i) & 0xffffffff
+        return s
 
     @staticmethod
     def recover_seed_from_state(state, min_advc=0, max_advc=10_000):
@@ -145,8 +146,7 @@ class TinyMT:
         advc = max_advc - min_advc
 
         for _ in range(advc + 1):
-            s = rng.state
-            TinyMT.reverse_init_loop(s)
+            s = TinyMT.reverse_init_loop(rng.state)
             
             if s[3] == TinyMT.C:
                 if s[1] == TinyMT.A and s[2] == TinyMT.B:
@@ -154,7 +154,7 @@ class TinyMT:
                 
                 c = rng.state
                 c[0] ^= 0x80000000
-                TinyMT.reverse_init_loop(c)
+                c = TinyMT.reverse_init_loop(c)
                 
                 if c[1] == TinyMT.A and c[2] == TinyMT.B:
                     return c[0]

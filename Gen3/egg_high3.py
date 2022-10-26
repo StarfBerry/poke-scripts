@@ -25,8 +25,8 @@ def generate_egg_ivs(seed, method):
     ivs = get_ivs(iv1, iv2)
 
     rng.advance(method[2])
-    inh = [rng.rand() for _ in range(3)]
-    par = [rng.rand() for _ in range(3)]
+    inh = [rng.next_u16() for _ in range(3)]
+    par = [rng.next_u16() for _ in range(3)]
     
     a = [0, 1, 2, 5, 3, 4]
     for i in range(3):

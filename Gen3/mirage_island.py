@@ -14,23 +14,23 @@ def generate_wild_pid_low(seed, mirage, delay):
     res = False
 
     for advc in range(max_advc):
-        low = rng.rand()
+        low = rng.next_u16()
         if low == mirage:
-            high = LCRNG(rng.state).rand()
+            high = LCRNG(rng.state).next_u16()
             pid = (high << 16) | low
             nat = pid % 25
 
             a = advc
             tmp = LCRNGR(rng.state)
             while 1:
-                fixed_nat = LCRNGR(tmp.state).rand() % 25
+                fixed_nat = LCRNGR(tmp.state).rand(25)
                 if fixed_nat == nat:
                     esv = (LCRNGR(tmp.state).advance(3) >> 16) % 100
                     print(f"Advances: {a-4:{len(str(max_advc))}d} | PID: {pid:08X} | ESV: {esv}")
                     res = True
                 
                 a -= 2
-                _pid = (tmp.rand() << 16) | tmp.rand()
+                _pid = (tmp.next() & 0xffff0000) | tmp.next_u16()
                 if (_pid % 25) == nat or a < 4: 
                     break
     
@@ -44,9 +44,9 @@ def generate_static_pid_low(seed, mirage, delay):
     res = False
     
     for advc in range(max_advc):
-        low = rng.rand()
+        low = rng.next_u16()
         if low == mirage:
-            high = LCRNG(rng.state).rand()
+            high = LCRNG(rng.state).next_u16()
             pid = (high << 16) | low
             print(f"Advances: {advc:{len(str(max_advc))}d} | PID: {pid:08X}")
             res = True

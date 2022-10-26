@@ -142,7 +142,7 @@ def calc_swsh_raid_seed_distance(s1, s2):
 
 def recover_swsh_seed_from_128_lsb(bits, min_advc=0, max_advc=10_000):
     state = Xoroshiro.recover_state_from_128_lsb(bits)
-    return Xoroshiro.recover_swsh_seed_from_state(state >> 64, state & Xoroshiro.MASK, min_advc, max_advc)
+    return recover_swsh_seed_from_state(state >> 64, state & Xoroshiro.MASK, min_advc, max_advc)
 
 XOROSHIRO_JUMP_TABLE = (
     0x00000000000000000000000000000002, 0x00000000000000000000000000000004, 0x00000000000000000000000000000010, 0x00000000000000000000000000000100, 
