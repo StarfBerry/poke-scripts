@@ -172,7 +172,7 @@ class BWRNG(LCRNG):
         return self.next() >> 32
 
     def rand(self, lim):
-        return (self.next32() * lim) >> 32
+        return (self.next_u32() * lim) >> 32
     
 class BWRNGR(BWRNG):
     MUL = (

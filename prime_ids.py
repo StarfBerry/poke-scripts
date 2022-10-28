@@ -1,13 +1,16 @@
 ### Script to generate a couple of prime IDs to make a pid to be shiny if possible ###
 
 from primesieve import nth_prime, primes
-from primality import primality
 from random import randint
-from Util import ask, ask_int, u32
 from RNG import lcrng_recover_pid_seeds, gcrng_recover_pid_seeds
 
-is_prime = primality.isprime
-
+def is_prime(x):
+    if x < 4: 
+        return x >= 2
+    if x % 2 == 0 or x % 3 == 0: 
+        return False
+    return all(x % i and x % (i + 2) for i in range(5, int(x**.5) + 1, 6))
+    
 def print_ids(tid, sid, pxor, gen):
     out = f"TID: {tid:05d} | SID: {sid:05d} |"
     if gen == 3:
@@ -70,6 +73,8 @@ def generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid):
                     res = True
 
 if __name__ == "__main__":
+    from Util import ask, ask_int, u32
+
     pid = u32(ask_int("PID: 0x", 16))
     gen = ask_int("What Gen ? ")
     rs = gen == 3 and ask("RS ? Y/N: ")
@@ -80,4 +85,4 @@ if __name__ == "__main__":
     
     print()
     
-    generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid) # 83 lines, prime number ;)
+    generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid)
