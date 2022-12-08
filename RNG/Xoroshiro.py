@@ -1,8 +1,3 @@
-import os, sys
-sys.path.append(os.path.dirname(__file__) + "\..")
-
-from Util.Bits import bits_to_int
-
 class Xoroshiro:
     MASK = 0xFFFFFFFFFFFFFFFF
 
@@ -39,11 +34,15 @@ class Xoroshiro:
         
         return (s0 + s1) & Xoroshiro.MASK
     
-    def rand(self, n=0xffffffff):
-        mask = Xoroshiro.get_mask(n)
-        rnd = self.next() & mask
-        while rnd >= n:
+    def next_u32(self):
+        return self.next() & 0xffffffff
+
+    def rand(self, lim):
+        mask = Xoroshiro.get_mask(lim)
+        while 1:
             rnd = self.next() & mask
+            if rnd < lim:
+                break
         return rnd
 
     def jump_ahead(self, n):
@@ -95,7 +94,7 @@ class Xoroshiro:
         if len(bits) != 128:
             raise ValueError("128 bits are needed to recover the internal state.")
 
-        vec = bits_to_int(bits)
+        vec = sum(bits[i] << i for i in range(128))
 
         return sum(((vec & MAT_XOROSHIRO_128_LSB_INV[i]).bit_count() & 1) << i for i in range(128))
 

@@ -87,7 +87,7 @@ if __name__ == "__main__":
     advances = 100_000
     delay = 174
 
-    test = Horde5(seeds[0], advances, delay)
+    test = Horde5(seeds[2], advances, delay)
     test.check()
 
 ''' 

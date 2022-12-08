@@ -10,7 +10,7 @@ from RNG import LCRNG, LCRNGR
 
 def generate_wild_pid_low(seed, mirage, delay):
     rng = LCRNG(seed)
-    rng.advance(delay)
+    rng.jump(delay)
     res = False
 
     for advc in range(max_advc):
@@ -30,8 +30,8 @@ def generate_wild_pid_low(seed, mirage, delay):
                     res = True
                 
                 a -= 2
-                _pid = (tmp.next() & 0xffff0000) | tmp.next_u16()
-                if (_pid % 25) == nat or a < 4: 
+                pid_ = (tmp.next() & 0xffff0000) | tmp.next_u16()
+                if (pid_ % 25) == nat or a < 4: 
                     break
     
     if not res:
@@ -40,7 +40,7 @@ def generate_wild_pid_low(seed, mirage, delay):
 
 def generate_static_pid_low(seed, mirage, delay):
     rng = LCRNG(seed)
-    rng.advance(delay)
+    rng.jump(delay)
     res = False
     
     for advc in range(max_advc):
@@ -55,7 +55,7 @@ def generate_static_pid_low(seed, mirage, delay):
         print("No results.")
 
 if __name__ == "__main__":
-    from Util import u16, u32, ask_int, ask
+    from Util import ask_int, ask, u16, u32
 
     seed = u16(ask_int("Initial Seed: 0x", 16))
     mirage = u16(ask_int("Mirage Island Value: 0x", 16))

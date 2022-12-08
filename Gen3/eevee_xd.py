@@ -32,12 +32,17 @@ class EeveeXD:
         self.gender = self.pid & 0xff
         self.shiny = (self.tid ^ self.sid ^ pidh ^ pidl) < 8
     
-    def __repr__(self):
-        hp_type = get_hp_type(self.ivs)
-        hp_dmge = get_hp_damage(self.ivs)
-        ability = EeveeXD.abilities[self.ability]
-        gender = get_gender(self.gender, 1/8)
-        return f"Seed: {self.seed:08X} | TID/SID: {self.tid:05d}/{self.sid:05d} | IVs: {format_ivs(self.ivs)} | Hidden Power: {hp_type:<8} {hp_dmge:<2} | Ability: {ability:<12} | PID: {self.pid:08X} | Gender: {gender:<6} | Nature: {self.nature:<7} | Shiny: {self.shiny}"
+    def __repr__(self): 
+        out = f"Seed: {self.seed:08X} | "
+        out += f"TID/SID: {self.tid:05d}/{self.sid:05d} | "
+        out += f"PID: {self.pid:08X} | "
+        out += f"Shiny: {self.shiny} | "
+        out += f"Nature: {self.nature:<7} | "
+        out += f"Gender: {get_gender(self.gender, 1/8):<6} | "
+        out += f"Ability: {EeveeXD.abilities[self.ability]:<12} | "
+        out += f"IVs: {format_ivs(self.ivs)} | "
+        out += f"Hidden Power: {get_hp_type(self.ivs):<8} {get_hp_damage(self.ivs):<2}"
+        return out
 
     @staticmethod
     def ivs_to_eevee(hp, atk, dfs, spa, spd, spe):
@@ -64,7 +69,7 @@ def search_eevee(min_ivs, max_ivs, search_for_shiny, search_for_nature, target_n
     elif search_for_nature:
         check = lambda eevee: eevee.nature in target_natures
     else:
-        check = lambda eevee: True
+        check = lambda _: True
     
     for hp in range(min_ivs[0], max_ivs[0]+1):
         for atk in range(min_ivs[1], max_ivs[1]+1):
@@ -77,12 +82,27 @@ def search_eevee(min_ivs, max_ivs, search_for_shiny, search_for_nature, target_n
                                     print(eevee)
 
 def search_shiny_tid_eevee(tid):
+    res = False
     for sid in range(0x10000):
         test = EeveeXD.tidsid_to_eevee(tid, sid)
         for eevee in test:
             if eevee.shiny:
                 print(eevee)
+                res = True
+    if not res:
+        print("No results.")
 
+# Eevee will be shiny with the psv of the specified pid (it's like searching from psv)
+# Can be usefull if you're going for an anti-shiny spread and you want a shiny starter
+def search_shiny_eevee_matching_pid(pid):
+    pxor = (pid >> 16) ^ (pid & 0xffff)  
+    for tid in range(1 << 16):
+        s = (pxor ^ tid) & 0xfff8
+        for sid in range(s, s+8):
+            for eevee in EeveeXD.tidsid_to_eevee(tid, sid):
+                if eevee.shiny:
+                    print(eevee)
+            
 if __name__ == "__main__":
     '''min_ivs = (27, 0, 27, 31, 27, 27)
     max_ivs = (31, 31, 31, 31, 31, 31)
@@ -96,4 +116,6 @@ if __name__ == "__main__":
     for eevee in test:
         print(eevee)'''
 
-    search_shiny_tid_eevee(5)
+    #search_shiny_tid_eevee(5)
+
+    search_shiny_eevee_matching_pid(0x1d8787eb)

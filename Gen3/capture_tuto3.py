@@ -5,14 +5,14 @@ sys.path.append(os.path.dirname(__file__) + "\..")
 
 from RNG import LCRNG
 
-def generate_shiny_tuto(seed, minAdvc, maxAdvc):
+def generate_shiny_tuto_3(seed, minAdvc, maxAdvc):
     print("| {:^10} | {:^5} | {:^5} | {:^8} |".format("Advances", "TID", "SID", "PID"))
     print("-" * 41)
     
     fmt = "| {:^10} | {:05d} | {:05d} | {:08X} |"
     
     rng = LCRNG(seed)
-    rng.advance(minAdvc+3) # delay
+    rng.jump(minAdvc+3) # delay
 
     for advc in range(minAdvc, maxAdvc):
         tmp = LCRNG(rng.next())         
@@ -43,4 +43,4 @@ if __name__ == "__main__":
     
     print()
     
-    generate_shiny_tuto(seed, minAdvc, maxAdvc)
+    generate_shiny_tuto_3(seed, minAdvc, maxAdvc)

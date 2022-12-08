@@ -71,7 +71,7 @@ def get_pokerus_slot_strain_4(seed, party):
     
     return (slot+1, strain)
 
-def generate_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc):
+def search_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc):
     fmt = "Init Seed: {:08X} | Advances: {:3d} -> Occidentary: {:3d} | Slot: {} | Strain: {:2d} | Delay: {}"
     max_occ = max_advc * 2
     base_seed = get_base_seed(dt)
@@ -101,4 +101,4 @@ if __name__ == "__main__":
     max_delay = 1500
     max_advc = 200
 
-    generate_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc)
+    search_pkrs_4(dt, hgss, party, min_delay, max_delay, max_advc)

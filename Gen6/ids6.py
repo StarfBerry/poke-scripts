@@ -48,9 +48,9 @@ def search_id_6(dt_start, dt_end, state, search_for_tid_tsv, tid, tsv, min_advc,
 if __name__ == "__main__":
     dt_start = datetime(2013, 10, 12, 0, 0, 0) # datetime of the calibration
     state = [0xc160ca69, 0xf8b93bad, 0x30303e61, 0x5499792d] # TinyMT state from the language selection screen obtained with dt_start
-    dt_end = datetime(2014, 1, 1, 0, 0, 0) # datetime to stop the research (don't forget it's python)
+    dt_end = datetime(2014, 1, 1, 0, 0, 0) # datetime to stop the research
 
-    search_for_tid_tsv = True 
+    search_for_tid_tsv = False 
     tid = 5
     tsv = 42
 

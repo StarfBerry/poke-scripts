@@ -108,11 +108,7 @@ class TinyMT:
 
     def _temper(self):
         t = (self._state[0] + (self._state[2] >> 8)) & 0xffffffff
-        
-        if t & 1:
-            t ^= TinyMT.C
-
-        return self._state[3] ^ t
+        return self._state[3] ^ t ^ (t & 1) * TinyMT.C
     
     def _period_certification(self):
         if self._state[0] & 0x7fffffff == 0 and self._state[1] == 0 and self._state[2] == 0 and self._state[3] == 0:

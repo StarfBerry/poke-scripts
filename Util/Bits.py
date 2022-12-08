@@ -46,7 +46,7 @@ def is_power2(x):
     return x & (x-1) == 0 and x != 0
 
 def change_endian(x):
-    x = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0xFF00FF)
+    x = ((x << 8) & 0xff00ff00) | ((x >> 8) & 0xff00ff)
     return ((x & 0xffff) << 16) | (x >> 16)
 
 def change_endian_64(x):

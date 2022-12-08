@@ -202,6 +202,6 @@ if __name__ == "__main__":
         rng = SFMT(seed)
         rng.advance(advc)
 
-        test = SFMT.recover_seed_from_state(rng.state, max_advc=max_advc)
+        test = SFMT.recover_seed_from_state(rng.state)
         
         assert test == seed, f"expected: {seed:08X} | output: {test:08X}"

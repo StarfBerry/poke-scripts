@@ -30,6 +30,7 @@ if __name__ == "__main__":
     max_advc = u32(ask_int("Max Advances: "))
     compatibility = ask_int("Parents Compatibility (20, 50 or 70) ? ", condition=lambda c: c in (20, 50, 70))
     delay = u8(ask_int("Delay: "))
+    
     print()
 
     generate_16bit_low_pid(seed, target_low, max_advc, compatibility, delay)

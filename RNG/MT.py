@@ -45,10 +45,7 @@ class MT:
     def _twist(self):
         for i in range(MT.N):
             x = (self._state[i] & 0x80000000) | (self._state[(i + 1) % MT.N] & 0x7fffffff)
-            y = x >> 1
-
-            if x & 1:
-                y ^= MT.A         
+            y = (x >> 1) ^ (x & 1) * MT.A        
             
             self._state[i] = self._state[(i + MT.M) % MT.N] ^ y
 
@@ -110,7 +107,7 @@ class MT:
     '''
 
     # Based on: https://www.ambionics.io/blog/php-mt-rand-prediction
-    # Recover the MT seed with two untempered values 227 advances apart
+    # Recover the MT seed with two untempered values 227 advances apart from the same state
     @staticmethod
     def recover_seed_from_untempered_values(u0, u227, offset=0):
         x = u0 ^ u227
@@ -198,7 +195,7 @@ if __name__ == "__main__":
 
         assert test == seed, f"{seed:08X} {test:08X}"'''
 
-    for _ in range(5_000):
+    for _ in range(1_000):
         seed = randrange(0, lim)
         advc = randrange(0, max_advc)
         advc -= advc % 624

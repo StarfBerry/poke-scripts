@@ -1,3 +1,5 @@
+### Script to search for a specific PIDs via shiny forcing (pokeradar/red gyarados) in Gen 4 games ###
+
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
@@ -44,7 +46,6 @@ def search_chained_shiny_pids(pids, min_ivs, max_ivs):
                 for spa in range(min_ivs[3], max_ivs[3]+1):
                     for spd in range(min_ivs[4], max_ivs[4]+1):
                         for spe in range(min_ivs[5], max_ivs[5]+1):
-    
                             for seed in lcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe)[0::2]:
                                 rng = LCRNGR(seed)
 
@@ -66,7 +67,7 @@ def search_chained_shiny_pids(pids, min_ivs, max_ivs):
     
 
 if __name__ == "__main__":
-    pids = [
+    '''pids = [
         0x00000000, 0x11111111, 0x22222222, 0x33333333, 0x44444444, 0x55555555, 0x66666666, 0x77777777, 
         0x88888888, 0x99999999, 0xaaaaaaaa, 0xbbbbbbbb, 0xcccccccc, 0xdddddddd, 0xeeeeeeee, 0xffffffff,
         0xdeadbeef, 0xdeadc0de, 0xc0cac01a, 0x10101010, 0x3bd52b3d, 0x00ba0bab, 0x0badface, 0x12345678,
@@ -82,4 +83,6 @@ if __name__ == "__main__":
     max_ivs = [31, 31, 31, 31, 31, 31]
 
     for min_ivs in ([30, 30, 30, 0, 30, 30], [30, 0, 30, 30, 30, 30], [30, 30, 30, 30, 30, 0]):
-        search_chained_shiny_pids(pids, min_ivs, max_ivs)
+        search_chained_shiny_pids(pids, min_ivs, max_ivs)'''
+    
+    search_chained_shiny_pid(0x88888888, [20] * 6, [31] * 6) # Seed: F323371E/7323371E | IVs: [29, 31, 31, 24, 27, 20]

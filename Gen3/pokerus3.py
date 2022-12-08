@@ -1,6 +1,6 @@
 '''
 Script to get Pokérus at the end of battle in RSE.
-To find your delay on emu: https://github.com/DevonStudios/LuaScripts/blob/main/Gen%203/VBA/Side/RS_Pok%C3%A9rus_RNG.lua
+To find your delay on emulator: https://github.com/DevonStudios/LuaScripts/blob/main/Gen%203/VBA/Side/RS_Pok%C3%A9rus_RNG.lua
 '''
 
 import os, sys
@@ -42,7 +42,7 @@ def generate_pkrs_3(seed, emerald, min_advc, max_advc, party, delay):
     fmt = "| {:^9} | {:^10} | {:^6} |"
 
     rng = LCRNG(seed)
-    rng.advance(min_advc + delay)
+    rng.jump(min_advc + delay)
 
     for advc in range(min_advc, max_advc+1):
         test = rng.next_u16()

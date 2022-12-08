@@ -46,16 +46,16 @@ def compare_egg_ivs(egg_ivs, target_ivs):
     return True
 
 class Pokemon:
-    def __init__(self, gen=3, pid=None, pidh=None, pidl=None, nature=None, ivs=None, iv1=None, iv2=None, ability=None, gender=None, ec=None, seed=None):
+    def __init__(self, gen=3, pid=None, pidh=None, pidl=None, nature=None, ivs=None, iv1=None, iv2=None, ability=None, gender=None, gender_ratio=None, ec=None, seed=None):
         self.gen = gen
         self.pid = (pidh << 16) | pidl if pid is None else pid
         self.ec = self.pid if gen <= 5 else ec
 
         self.nature = get_nature(self.pid if gen <= 4 else nature) if nature != -1 else "Sync" 
         self.ivs = get_ivs(iv1, iv2) if ivs is None else ivs
-        
+
         self.ability = ability if ability is not None else self.pid & 1 if gen <= 4 else (self.pid >> 16) & 1
-        self.gender = self.pid & 0xff if gen <= 5 else gender
+        self.gender = gender if gender is not None else self.pid & 0xff if gender_ratio is None else get_gender(self.pid & 0xff, gender_ratio)
         self.seed = seed
 
         self.hp_type = get_hp_type(self.ivs)

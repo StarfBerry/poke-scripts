@@ -58,12 +58,9 @@ def search_egg_seeds(pid_high, target_ivs):
     print("-" * 51)
 
 if __name__ == "__main__":
-    from Util import ask_int, u16
+    from Util import ask_int, ask_ints
 
-    pid_high = u16(ask_int("PID High: 0x", 16))
-    
-    target_ivs = []
-    while len(target_ivs) != 6 or any(iv < 0 or iv > 31 for iv in target_ivs):
-        target_ivs = [int(iv) for iv in input("IVs (x.x.x.x.x.x): ").split(".")]
+    pid_high = ask_int("PID High: 0x", 16) & 0xffff   
+    target_ivs = ask_ints("IVs (x.x.x.x.x.x): ", condition=lambda ivs: len(ivs) == 6 and all(0 <= iv <= 31 for iv in ivs))
 
     search_egg_seeds(pid_high, target_ivs)

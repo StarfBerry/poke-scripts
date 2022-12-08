@@ -7,11 +7,12 @@ from RNG import LCRNGR
 
 def get_init_seed(seed, min_advc, max_advc):
     rng = LCRNGR(seed)
-    rng.advance(min_advc)
+    rng.jump(min_advc)
     
     for advc in range(min_advc+1, max_advc):
-        if (state := rng.next()) < 0x10000:
-            return (state, advc)
+        seed = rng.next()
+        if seed < 0x10000:
+            return (seed, advc)
     
     return (None, -1)
 

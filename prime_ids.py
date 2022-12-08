@@ -2,13 +2,12 @@
 
 from primesieve import nth_prime, primes
 from random import randint
+from Util import ask, ask_int, u32
 from RNG import lcrng_recover_pid_seeds, gcrng_recover_pid_seeds
 
 def is_prime(x):
-    if x < 4: 
-        return x >= 2
-    if x % 2 == 0 or x % 3 == 0: 
-        return False
+    if x % 2 == 0 or x % 3 == 0 or x < 5: 
+        return x == 2 or x == 3
     return all(x % i and x % (i + 2) for i in range(5, int(x**.5) + 1, 6))
     
 def print_ids(tid, sid, pxor, gen):
@@ -31,17 +30,17 @@ def generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid):
     res = False
 
     if rs:
-        check = lambda tid, sid: len(lcrng_recover_pid_seeds((tid << 16) | sid)) != 0
+        check = lambda tid, sid: len(lcrng_recover_pid_seeds((tid << 16) | sid)) != 0 # ids combo exists in RS
     elif gc:
-        check = lambda tid, sid: len(gcrng_recover_pid_seeds((tid << 16) | sid)) != 0
+        check = lambda tid, sid: len(gcrng_recover_pid_seeds((tid << 16) | sid)) != 0 # don't check if the ids are accessible in Colosseum
     elif wild5:
         pid_bit = (pid >> 31) ^ (pid & 1)
         check = lambda tid, sid: ((tid & 1) ^ (sid & 1)) == pid_bit # id_bit == pid_bit to follow the rule (HPID ^ LPID ^ LTID ^ LSID) == 0
     elif gen >= 7:
         check = lambda tid, sid: is_prime((tid + sid * 0x10000) % 10**6) # tid, sid and G7ID+ must be prime. G7ID+ has around 8% chance to be prime.
     else:
-        check = lambda tid, sid: True
-
+        check = lambda tid, sid: True # we cannot efficiently check if the ids are possible in Gen 4 games otherwise all combinations exist
+    
     if custom_tid:
         low_sid = (custom_tid ^ pxor) & mask
         for sid in primes(low_sid, low_sid + x):
@@ -49,38 +48,48 @@ def generate_prime_ids(pid, gen, square, rs, gc, wild5, custom_tid):
                 print_ids(custom_tid, sid, pxor, gen)
                 res = True
         if not res:
-            print(f"No results with TID {custom_tid:05d} :(")
-    elif (square and pxor & 1) or (wild5 and pid_bit): # ids have different parity ==> try with sid = 2
+            print(f"No results with TID {custom_tid:05d}.")
+    elif (square and pxor & 1) or (wild5 and pid_bit): # the ids have different parity -> try with sid = 2
         sid = 2
-        low_tid = (pxor ^ sid) & mask
+        low_tid = (sid ^ pxor) & mask
         tids = primes(low_tid, low_tid + x)
         for tid in tids:
             if check(tid, sid):
                 print_ids(tid, sid, pxor, gen)
                 res = True
-        if not res:
-            shiny = "square shiny" if square else "shiny"
-            if wild5: 
-                gen = "5 at least for Wild/Static"
-            print(f"Prime IDs + {shiny} is impossible with PID {pid:08X}{f' in Gen {gen}' if (wild5 or len(tids) != 0) else ''}.")
-    else:
-        while not res:
-            tid = nth_prime(randint(1, 6542)) # there are 6542 prime numbers < 65536
-            low_sid = (tid ^ pxor) & mask
-            for sid in primes(low_sid, low_sid + x):
+        if (rs or gc) and not res: 
+            tid = 2 # by swapping the ids, we can potentially get a result
+            for sid in tids:
                 if check(tid, sid):
                     print_ids(tid, sid, pxor, gen)
                     res = True
-
+        if not res:
+            if wild5: 
+                gen = "5 at least for Wild/Static"
+            elif gen >= 7:
+                gen = "7+ (G7ID+ cannot be prime)" 
+            shiny = "square shiny" if square else "shiny"
+            print(f"Prime IDs + {shiny} is impossible with PID {pid:08X}{f' in Gen {gen}' if (wild5 or len(tids) != 0) else ''}.")
+    else:
+        satisfied = False
+        while not satisfied:
+            while not res:
+                tid = nth_prime(randint(1, 6542)) # there are 6542 prime numbers < 65536
+                low_sid = (tid ^ pxor) & mask
+                for sid in primes(low_sid, low_sid + x):
+                    if check(tid, sid):
+                        print_ids(tid, sid, pxor, gen)
+                        res = True
+            satisfied = ask("Satisfied ? Y/N: ")
+            res = False    
+                
 if __name__ == "__main__":
-    from Util import ask, ask_int, u32
-
     pid = u32(ask_int("PID: 0x", 16))
     gen = ask_int("What Gen ? ")
     rs = gen == 3 and ask("RS ? Y/N: ")
     gc = gen == 3 and not rs and ask("GameCube ? Y/N: ")
     wild5 = gen == 5 and ask("Wild/Static ? Y/N: ")
-    custom_tid = ask("Custom Prime TID ? Y/N: ") and ask_int("TID: ", condition=lambda tid: tid < 65536 and is_prime(tid))
+    custom_tid = gen < 7 and ask("Custom Prime TID ? Y/N: ") and ask_int("TID: ", condition=lambda tid: tid < 65536 and is_prime(tid))
     square = ask("Square only ? Y/N: ")
     
     print()

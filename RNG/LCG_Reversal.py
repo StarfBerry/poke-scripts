@@ -101,7 +101,7 @@ GCRNG_ADD     = 0x269EC3          # GCRNG add constant
 GCRNG_SUB     = 0x259EC4          # GCRNG_ADD - 0xffff
 GCRNG_BASE    = 0x343FABC02       # (GCRNG_MUL + 1) * 0xffff
 
-# GCRNG_MUL^3 don't produce the lowest KMAX but allow to skip more K's and obtain the least iterations for CHANNEL ivs
+# GCRNG_MUL^3 don't produce the lowest KMAX but allows to skip more K's and obtain the fewest iterations for CHANNEL ivs
 GCRNG_MUL_3   = 0x45C82BE5        # GCRNG_MUL^3
 GCRNG_SUB_3   = 0xCAF65B56        # GCRNG_ADD * (1 + GCRNG_MUL + GCRNG_MUL^2) - 0x7ffffff
 GCRNG_BASE_3  = 0x22E415EEA37D41A # (GCRNG_MUL_3 + 1) * 0x7ffffff
@@ -119,7 +119,7 @@ def gcrng_recover_pid_seeds(pid):
     kmax = (GCRNG_BASE - t) >> 32
 
     seeds = []
-    for k in range(kmax+1): # at most 4 iterations
+    for _ in range(kmax+1): # at most 4 iterations
         if (t % GCRNG_MUL) < 0x10000:
             seeds.append(gcrng_prev(first | (t // GCRNG_MUL)))
         
@@ -135,7 +135,7 @@ def gcrng_recover_ivs_seeds(hp, atk, dfs, spa, spd, spe):
     kmax = (GCRNG_BASE - t) >> 31
 
     seeds = []
-    for k in range(kmax+1): # at most 7 iterations
+    for _ in range(kmax+1): # at most 7 iterations
         if (t % GCRNG_MUL) < 0x10000:
             seeds.append(seed := gcrng_prev(first | (t // GCRNG_MUL)))
             seeds.append(seed ^ 0x80000000)

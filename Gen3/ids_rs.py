@@ -3,7 +3,7 @@
 import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..")
 
-from RNG import lcrng_recover_pid_seeds, LCRNGR
+from RNG import lcrng_recover_pid_seeds
 from Util import ask_int, u32
 import seed3
 

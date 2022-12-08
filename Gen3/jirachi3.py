@@ -132,6 +132,7 @@ class JirachiChannel:
 
     def __repr__(self):
         out = f"Seed: {self.seed:08X} | "
+        out += f"TID/SID: {self.tid:05d}/{self.sid:05d} | "
         out += f"PID: {self.pid:08X} | "
         out += f"Nature: {self.nature:7s} | "
         out += f"IVs: {format_ivs(self.ivs)} | "

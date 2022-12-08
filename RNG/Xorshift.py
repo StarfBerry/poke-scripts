@@ -27,17 +27,10 @@ class Xorshift:
         return (s0, s1)
     
     def next(self):
-        return (self._next_state() % 0xffffffff) ^ 0x80000000
-    
-    def rand(self, lim):
-        return self.next() % lim
-
-    def _next_state(self):
         t = self._state[0]
         t ^= (t << 11) & 0xffffffff
-        t ^= t >> 8
-        t ^= self._state[3] ^ (self._state[3] >> 19)
-
+        t ^= (t >> 8) ^ self._state[3] ^ (self._state[3] >> 19) 
+ 
         self._state[0] = self._state[1]
         self._state[1] = self._state[2]
         self._state[2] = self._state[3]
@@ -45,9 +38,8 @@ class Xorshift:
 
         return t
     
-    def _prev_state(self):
-        t = self._state[3]
-        t ^= self._state[2] ^ (self._state[2] >> 19)
+    def prev(self):
+        t = self._state[3] ^ self._state[2] ^ (self._state[2] >> 19) 
         t = reverse_xor_rshift_mask(t, 8)
         t = reverse_xor_lshift_mask(t, 11)
 
@@ -57,7 +49,13 @@ class Xorshift:
         self._state[0] = t
 
         return self._state[3]
+
+    def next_u32(self):
+        return (self.next() % 0xffffffff) ^ 0x80000000
     
+    def rand(self, lim):
+        return self.next_u32() % lim
+
     def jump_ahead(self, n):
         i = 0
         
@@ -83,13 +81,13 @@ class Xorshift:
 
     def advance(self, n=1):
         for _ in range(n):
-            self._next_state()
+            self.next()
     
     def back(self, n=1):
         for _ in range(n):
-            self._prev_state()
+            self.prev()
             
-    # Ignoring the case of multiple solutions (2^n solutions with n the number of occurence of 0x80000000 in the outputs, 0x7fffffff output impossible)
+    # Ignoring the case of multiple solutions (2^n solutions with n the number of occurence of 0x80000000 in the outputs, 0x7fffffff output is impossible)
     @staticmethod
     def recover_states_from_4_32bit_outputs(out1, out2, out3, out4): 
         s0 = ((out1 << 32) | out2) ^ 0x8000000080000000
@@ -165,4 +163,4 @@ if __name__ == "__main__":
 
     rng = Xorshift(s0, s1)
     for _ in range(4):
-        print(hex(rng.next())) 
+        print(hex(rng.next_u32())) 

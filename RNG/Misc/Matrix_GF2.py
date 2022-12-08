@@ -9,10 +9,10 @@ import os, sys
 sys.path.append(os.path.dirname(__file__) + "\..\..")
 
 import numpy as np
+from sympy import Matrix
 import galois
 
 from functools import reduce
-from sympy import Matrix
 from Util.Bits import bits_to_int
 
 GF = galois.GF(2)
@@ -108,22 +108,20 @@ def gf2_pow_mod(base, exp, mod, degre=128):
     return res
 
 def print_matrix_table(mat, n=128, a=4):
-    c = 1
+    l = a - 1
     for i in range(n):
         x = bits_to_int(mat[i].tolist())
         print(f"0x{x:032X}", end=", ")
-        if c % a == 0:
+        if i % a == l:
             print()
-        c += 1
 
 def print_jump_poly_table(charpoly, n, a=4, degre=128):
-    c = 1
+    l = a - 1
     for i in range(n):
         x = gf2_pow_mod(2, 1 << i, charpoly, degre)
         print(f"0x{x:032X}", end=", ")
-        if c % a == 0:
+        if i % a == l:
             print()
-        c += 1
 
 
 ##############################################################################################

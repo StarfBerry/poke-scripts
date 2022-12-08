@@ -81,9 +81,9 @@ def shuffle_array(data, sv, block_size):
 
 def crypt_array(data, seed, start, end):
     for i in range(start, end, 2):
-        seed = (seed * 0x41C64E6D + 0x6073) & 0xFFFFFFFF
+        seed = (seed * 0x41c64e6d + 0x6073) & 0xffffffff
         xor = seed >> 16
-        data[i] ^= xor & 0xFF
+        data[i] ^= xor & 0xff
         data[i+1] ^= xor >> 8 
 
 def crypt_pkm(data, pv, block_size):
@@ -112,7 +112,7 @@ def get_checksum(data, party_start):
     span = data[0x08:party_start]
     for i in range(0, len(span), 2):
         chk += u16_from_le_bytes(span, i)
-    return chk & 0xFFFF
+    return chk & 0xffff
 
 def decrypt_array_3(ekm):
     pid = u32_from_le_bytes(ekm, 0x0)
@@ -158,7 +158,7 @@ def encrypt_array_45(pk):
     sv = (pv >> 13) & 31
     
     ekm = shuffle_array(pk, BLOCK_POSITION_INVERT[sv], SIZE_4BLOCK)
-    crypt_pkm_45(data, pv, chk, SIZE_4BLOCK)
+    crypt_pkm_45(ekm, pv, chk, SIZE_4BLOCK)
     return ekm
 
 def decrypt_array_67(ekm):
@@ -176,14 +176,14 @@ def encrypt_array_67(pk):
     crypt_pkm(ekm, pv, SIZE_6BLOCK)
     return ekm
 
-def decrypt_array_8(ekm):
+def decrypt_array_89(ekm):
     pv = u32_from_le_bytes(ekm, 0)
     sv = (pv >> 13) & 31
 
     crypt_pkm(ekm, pv, SIZE_8BLOCK)
     return shuffle_array(ekm, sv, SIZE_8BLOCK)
 
-def encrypt_array_8(pk):
+def encrypt_array_89(pk):
     pv = u32_from_le_bytes(pk, 0)
     sv = (pv >> 13) & 31
 

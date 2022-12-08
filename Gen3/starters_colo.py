@@ -12,8 +12,7 @@ class StartersColo:
         self.tid = rng.next_u16()
         self.sid = rng.next_u16()
 
-        starters = []
-        for _ in range(2):
+        for i in range(2):
             rng.advance(2)
 
             iv1 = rng.next_u16()
@@ -29,10 +28,11 @@ class StartersColo:
                 if (pidl & 0xff) >= 31 and xor >= 8: # male and not shiny
                     break         
             
-            starters.append(Pokemon(iv1=iv1, iv2=iv2, ability=ability, pidh=pidh, pidl=pidl))
-
-        self.umbreon = starters[0]
-        self.espeon = starters[1]
+            pkm = Pokemon(iv1=iv1, iv2=iv2, ability=ability, pidh=pidh, pidl=pidl)
+            if i == 0:
+                self.umbreon = pkm
+            else:
+                self.espeon = pkm
         
         self.accessible = is_accessible_in_name_screen(GCRNGR(seed).advance(1000))
 
